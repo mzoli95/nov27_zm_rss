@@ -1,6 +1,6 @@
 # Review milestones
 
-Use one working branch with a draft GitHub pull request. Review each milestone by its commit link or GitHub comparison with the previous checkpoint.
+Start each requested change on a new branch from the latest remote main. Review each milestone by its commit link, pull request, or GitHub comparison with main.
 
 After each milestone, run the relevant checks and record the commands or manual steps, expected and observed results, and any gaps in the verification log. Commit with a meaningful message and push the working branch when publishing is authorized. Share the commit link, what changed, and what needs human review. Pause at the review checkpoint before starting the next milestone. Keep credentials, local databases and runtime logs out of Git.
 
@@ -10,7 +10,7 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Compare the scope with the assignment and confirm that the diagram shows the shared notification sender with separate email and Slack adapters.
 - **Human review:** Approve the MVP boundary, architecture and review checkpoints.
 - **Commit:** `docs: define project scope and review milestones`
-- **Status:** Local deliverables prepared. Commit and push pending.
+- **Status:** Published on main.
 
 ## 2. Application shell and authentication
 
@@ -18,6 +18,7 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Build both projects, apply migrations to a fresh SQLite database, exercise registration and login, and verify that a normal user receives a denial from an admin endpoint. Check navigation and forms on mobile and desktop.
 - **Human review:** Review the page shell, Supabase flow, authorization boundary and NgRx folder structure.
 - **Commit:** `feat: scaffold application and authentication`
+- **Status:** Shell ready for review. Build, fixture migration, anonymous API checks and mocked browser checks passed. Real Supabase flows remain pending project configuration.
 
 ## 3. RSS ingestion and browsing
 

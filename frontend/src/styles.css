@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #11243b;
+  --color-muted: #4b6179;
+  --color-primary: #1759b0;
+  --color-primary-hover: #12468b;
+  --color-page: #f4f8fe;
+  --color-line: #d7e3f2;
+  --color-tint: #e4efff;
+}
+
+@layer base {
+  body { @apply bg-page text-ink antialiased; }
+  a, button:not(:disabled), select { @apply cursor-pointer; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-primary; }
+  select, input:not([type="checkbox"]) {
+    @apply mt-1 block w-full rounded-lg border border-line bg-white px-3 py-2 text-ink;
+  }
+}
+
+@layer components {
+  .primary { @apply rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-hover disabled:opacity-50; }
+  .menu-panel { @apply absolute right-0 top-full z-10 mt-2 w-56 rounded-xl border border-line bg-white p-2 shadow-lg; }
+  .menu-link { @apply block w-full rounded-md px-3 py-2 text-left hover:bg-tint; }
+}

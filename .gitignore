@@ -9,3 +9,5 @@
 .env
 .env.*
 !.env.example
+/.dotnet/
+/frontend/public/app-config.json
