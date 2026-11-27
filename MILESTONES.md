@@ -34,6 +34,7 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Test matching and nonmatching stories, repeated ingestion, isolated channel failures and ambiguous delivery. Record real receipt separately from delivery records.
 - **Human review:** Review rule semantics, preference defaults and adapter boundaries.
 - **Commit:** `feat: match alerts and deliver notifications`
+- **Status:** Adapter and queue workflow ready for review. Live email and Slack receipt require provider credentials and a matching Slack workspace account.
 
 ## 5. Administration and realtime
 

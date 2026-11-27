@@ -7,9 +7,12 @@ public static class NewsDefaults
 {
     public static async Task InitializeAsync(FeedDb db)
     {
-        if (await db.NewsSources.AnyAsync()) return;
         await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction =
             await db.Database.BeginTransactionAsync();
+        int inserted = await db.Database.ExecuteSqlAsync($"""
+            INSERT INTO AppMarkers (Key) VALUES ({"news-defaults"}) ON CONFLICT (Key) DO NOTHING
+            """);
+        if (inserted == 0) return;
         NewsSource world = new() { Name = "BBC World News", Url = "https://feeds.bbci.co.uk/news/world/rss.xml", Kind = SourceKind.Rss };
         NewsSource business = new() { Name = "BBC Business", Url = "https://feeds.bbci.co.uk/news/business/rss.xml", Kind = SourceKind.Rss };
         NewsSource tech = new() { Name = "BBC Technology", Url = "https://feeds.bbci.co.uk/news/technology/rss.xml", Kind = SourceKind.Rss };

@@ -4,29 +4,38 @@ export enum SourceKind {
   Rss = 'Rss',
   Usgs = 'Usgs',
 }
+export interface SourceTopic {
+  topic: string;
+  keywords: string;
+}
 export interface SourceInput {
   name: string;
   url: string;
   kind: SourceKind;
-  topic: string;
-  keywords: string;
+  topics: SourceTopic[];
 }
-export interface NewsSource {
+export interface NewsSource extends SourceInput {
   id: number;
-  name: string;
-  url: string;
-  kind: SourceKind;
   lastSuccess: string | null;
   status: string | null;
-  topics: { topic: string; keywords: string }[];
+}
+export interface SourcePage {
+  items: NewsSource[];
+  page: number;
+  total: number;
+  pageSize: number;
 }
 export const sourcesActions = createActionGroup({
   source: 'News sources',
   events: {
-    Load: emptyProps(),
-    Save: props<{ source: SourceInput }>(),
-    Run: props<{ id: number }>(),
-    Loaded: props<{ topics: string[]; sources: NewsSource[]; message: string }>(),
+    Load: props<{ page: number }>(),
+    'Editor opened': emptyProps(),
+    Save: props<{ source: SourceInput; id: number | null; page: number }>(),
+    Test: props<{ source: SourceInput }>(),
+    Tested: props<{ count: number }>(),
+    Delete: props<{ id: number; page: number }>(),
+    Run: props<{ id: number; page: number }>(),
+    Loaded: props<{ topics: string[]; sources: SourcePage; message: string; saved: boolean }>(),
     Failed: props<{ message: string }>(),
   },
 });

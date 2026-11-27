@@ -10,6 +10,21 @@ public sealed class FeedDbModelSnapshot : ModelSnapshot
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
         modelBuilder.HasAnnotation("ProductVersion", "11.0.0");
+        modelBuilder.Entity("WorldEventAlerts.Delivery.ChannelPreference", entity =>
+        {
+            entity.Property<Guid>("UserId").HasColumnType("TEXT");
+            entity.Property<string>("Channel").HasColumnType("TEXT");
+            entity.Property<bool>("Enabled").HasColumnType("INTEGER");
+            entity.HasKey("UserId", "Channel");
+            entity.ToTable("ChannelPreferences");
+        });
+        modelBuilder.Entity("WorldEventAlerts.Delivery.ChannelState", entity =>
+        {
+            entity.Property<string>("Channel").HasColumnType("TEXT");
+            entity.Property<bool>("Enabled").HasColumnType("INTEGER");
+            entity.HasKey("Channel");
+            entity.ToTable("ChannelStates");
+        });
         modelBuilder.Entity("WorldEventAlerts.Feed.ArticleLike", entity =>
         {
             entity.Property<Guid>("UserId").HasColumnType("TEXT");
@@ -32,6 +47,20 @@ public sealed class FeedDbModelSnapshot : ModelSnapshot
             entity.Property<DateTime>("PublishedAt").HasColumnType("TEXT");
             entity.HasKey("Id");
             entity.ToTable("Articles");
+        });
+        modelBuilder.Entity("WorldEventAlerts.Delivery.DeliveryAttempt", entity =>
+        {
+            entity.Property<Guid>("UserId").HasColumnType("TEXT");
+            entity.Property<int>("ArticleId").HasColumnType("INTEGER");
+            entity.Property<string>("Channel").HasColumnType("TEXT");
+            entity.Property<int>("Status").HasColumnType("INTEGER");
+            entity.Property<DateTime>("UpdatedAt").HasColumnType("TEXT");
+            entity.HasKey("UserId", "ArticleId", "Channel");
+            entity.HasIndex("ArticleId");
+            entity.HasIndex("Status", "UpdatedAt");
+            entity.ToTable("DeliveryAttempts");
+            entity.HasOne("WorldEventAlerts.Feed.Article", null)
+                .WithMany().HasForeignKey("ArticleId").OnDelete(DeleteBehavior.Cascade).IsRequired();
         });
         modelBuilder.Entity("WorldEventAlerts.News.NewsSource", entity =>
         {

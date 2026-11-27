@@ -6,13 +6,14 @@ import { Auth } from '../auth/auth';
 import { profileActions, ProfilePreferences } from './+state/profile.actions';
 import type { ProfileState } from './+state/profile.reducer';
 import { selectProfile } from './+state/profile.selectors';
+import { DeliveryPreferences } from './delivery-preferences';
 
 interface PreferenceFields {
   labels: string;
 }
 
 @Component({
-  imports: [FormField, RouterLink],
+  imports: [FormField, RouterLink, DeliveryPreferences],
   host: { class: 'mx-auto block max-w-3xl' },
   template: `
     <h1 class="text-3xl font-bold">Profile</h1>
@@ -75,6 +76,7 @@ interface PreferenceFields {
         <button type="button" class="primary mt-4" (click)="load()">Retry</button>
       }
     </section>
+    <app-delivery-preferences />
   `,
 })
 export class Profile {

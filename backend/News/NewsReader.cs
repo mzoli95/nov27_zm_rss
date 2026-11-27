@@ -20,6 +20,8 @@ public static class NewsReader
             Async = true, DtdProcessing = DtdProcessing.Prohibit, MaxCharactersInDocument = 2_000_000
         });
         XDocument xml = await XDocument.LoadAsync(reader, LoadOptions.None, token);
+        if (xml.Root?.Name.LocalName is not ("rss" or "feed" or "RDF"))
+            throw new InvalidOperationException("Expected an RSS or Atom feed.");
         return xml.Descendants().Where(node => node.Name.LocalName is "item" or "entry")
             .Take(100).Select(ReadArticle).OfType<NewsItem>().ToArray();
     }

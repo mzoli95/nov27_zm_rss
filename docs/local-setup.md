@@ -51,12 +51,12 @@ npx --yes --package=node@24.15.0 -- node node_modules\@angular\cli\bin\ng.js ser
 
 Supabase sends signup confirmation and password-reset emails. Configure its custom SMTP in the Supabase dashboard when sending to users outside the project team. [Supabase custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp)
 
-The JSON example also reserves configuration for upcoming application integrations. The current shell uses the Supabase section. It reads demo articles from SQLite.
+Copy the relevant sections of the JSON example into the ignored backend local settings and restart the backend. The user directory and both alert adapters need the backend-only `Supabase.SecretKey` to read the current verified account email.
 
 | Section | Purpose | Values to prepare |
 | --- | --- | --- |
-| `Notifications.Email` | Application alert emails | SMTP host, provider port and TLS mode, credentials, and verified sender address. |
-| `Notifications.Slack` | Application alerts to a Slack destination | Incoming webhook URL for the intended channel. [Slack incoming webhooks](https://api.slack.com/messaging/webhooks) |
+| `Notifications.Email` | Application alert emails | SMTP host, provider port, `StartTls` or `SslOnConnect`, credentials and verified sender address. Set `Enabled` or enable the configured channel in Admin. |
+| `Notifications.Slack` | Personal Slack alerts | Install a Slack app with the bot scopes `users:read.email`, `im:write` and `chat:write`. Enter the bot token in `BotToken` and enable the channel. The member's Slack email must match the verified app email. [Slack email lookup](https://docs.slack.dev/reference/methods/users.lookupByEmail/) |
 | `News` | Scheduled ingestion | Enable the scheduler, set the interval, and approve feed domains. Use **Administration → News sources** to assign endpoints. Check permitted use before enabling. |
 
-Keep SMTP credentials and the Slack webhook in local configuration. The delivery milestone will wire these notification settings into the backend.
+Keep SMTP credentials, the Slack bot token and the Supabase secret key in backend local configuration. Supabase authentication email and application alert email have separate settings.

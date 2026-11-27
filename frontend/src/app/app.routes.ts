@@ -4,11 +4,13 @@ import type { AuthPage } from './auth/auth-page';
 import { provideEffects } from '@ngrx/effects';
 import { provideState } from '@ngrx/store';
 import { adminReducer } from './admin/+state/admin.reducer';
-import { saveRole } from './admin/+state/admin.effects';
+import { loadUsers, saveRole } from './admin/+state/admin.effects';
 import { manageSources } from './admin/+state/sources.effects';
 import { sourcesReducer } from './admin/+state/sources.reducer';
 import { loadProfile, saveProfile } from './shell/+state/profile.effects';
 import { profileReducer } from './shell/+state/profile.reducer';
+import { manageDeliveryChannels, manageDeliveryPreferences } from './shell/+state/delivery.effects';
+import { deliveryAdmin, deliveryPrefs } from './shell/+state/delivery.reducer';
 
 const loadAuth = (): Promise<typeof AuthPage> => import('./auth/auth-page').then((m) => m.AuthPage);
 export const routes: Routes = [
@@ -26,7 +28,8 @@ export const routes: Routes = [
     canActivate: [signedIn],
     providers: [
       provideState('profile', profileReducer),
-      provideEffects({ loadProfile, saveProfile }),
+      provideState('deliveryPrefs', deliveryPrefs),
+      provideEffects({ loadProfile, saveProfile, manageDeliveryPreferences }),
     ],
     loadComponent: () => import('./shell/profile').then((m) => m.Profile),
   },
@@ -47,7 +50,8 @@ export const routes: Routes = [
     providers: [
       provideState('admin', adminReducer),
       provideState('sources', sourcesReducer),
-      provideEffects({ saveRole, manageSources }),
+      provideState('deliveryAdmin', deliveryAdmin),
+      provideEffects({ loadUsers, saveRole, manageSources, manageDeliveryChannels }),
     ],
     loadComponent: () => import('./admin/admin').then((m) => m.Admin),
   },

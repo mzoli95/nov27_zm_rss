@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WorldEventAlerts.News;
+using WorldEventAlerts.Delivery;
 
 namespace WorldEventAlerts.Feed;
 
@@ -19,6 +20,9 @@ public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options
     public DbSet<ArticleTopic> ArticleTopics => Set<ArticleTopic>();
     public DbSet<ArticleAlert> ArticleAlerts => Set<ArticleAlert>();
     public DbSet<ImportedArticle> ImportedArticles => Set<ImportedArticle>();
+    public DbSet<ChannelPreference> ChannelPreferences => Set<ChannelPreference>();
+    public DbSet<ChannelState> ChannelStates => Set<ChannelState>();
+    public DbSet<DeliveryAttempt> DeliveryAttempts => Set<DeliveryAttempt>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +30,11 @@ public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options
         likes.HasKey(like => new { like.UserId, like.ArticleId });
         likes.HasOne<Article>().WithMany().HasForeignKey(like => like.ArticleId);
         ConfigureNews(modelBuilder);
+        modelBuilder.Entity<ChannelPreference>().HasKey(row => new { row.UserId, row.Channel });
+        modelBuilder.Entity<ChannelState>().HasKey(row => row.Channel);
+        modelBuilder.Entity<DeliveryAttempt>().HasKey(row => new { row.UserId, row.ArticleId, row.Channel });
+        modelBuilder.Entity<DeliveryAttempt>().HasOne<Article>().WithMany().HasForeignKey(row => row.ArticleId);
+        modelBuilder.Entity<DeliveryAttempt>().HasIndex(row => new { row.Status, row.UpdatedAt });
     }
 
     internal static void ConfigureNews(ModelBuilder model)

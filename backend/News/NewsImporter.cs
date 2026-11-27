@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WorldEventAlerts.Feed;
+using WorldEventAlerts.Delivery;
 
 namespace WorldEventAlerts.News;
 
@@ -11,8 +12,24 @@ public sealed class ImportGate
 
 public sealed record ImportResult(int Added, string? Error);
 
-public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy, ImportGate gate)
+public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy, ImportGate gate,
+    IEnumerable<INotificationSender> senders)
 {
+    public async Task<IResult> TestAsync(SourceUpdate input, CancellationToken token)
+    {
+        if (!SourceEndpoints.Valid(input, policy))
+            return Results.BadRequest(new { message = "Enter an approved HTTPS source and at least one topic." });
+        try
+        {
+            IReadOnlyList<NewsItem> items = await FetchAsync(input.Url, input.Kind, token);
+            return Results.Ok(new { count = items.Count });
+        }
+        catch (Exception error) when (IsImportFailure(error, token))
+        {
+            return Results.BadRequest(new { message = "The source could not be read. Check the URL and format." });
+        }
+    }
+
     public async Task<ImportResult> RunAsync(int id, CancellationToken token)
     {
         if (!await gate.Lock.WaitAsync(0, token)) return new ImportResult(0, "An import is already running.");
@@ -29,10 +46,7 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
                 await db.SaveChangesAsync(token);
                 return new ImportResult(added, null);
             }
-            catch (Exception error) when ((error is HttpRequestException or IOException or
-                System.Xml.XmlException or System.Text.Json.JsonException or InvalidOperationException or
-                KeyNotFoundException or ArgumentOutOfRangeException or DbUpdateException ||
-                error is OperationCanceledException) && !token.IsCancellationRequested)
+            catch (Exception error) when (IsImportFailure(error, token))
             {
                 db.ChangeTracker.Clear();
                 source = await db.NewsSources.FindAsync([id], token);
@@ -52,10 +66,7 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
         if (!policy.IsAllowed(source.Url, source.Kind)) throw new InvalidOperationException();
         List<SourceTopic> mappings = await db.SourceTopics.Where(link => link.SourceId == source.Id).ToListAsync(token);
         if (mappings.Count == 0) return 0;
-        using HttpResponseMessage response = await http.GetAsync(source.Url, token);
-        response.EnsureSuccessStatusCode();
-        await using Stream body = await response.Content.ReadAsStreamAsync(token);
-        IReadOnlyList<NewsItem> items = await NewsReader.ReadAsync(body, source.Kind, token);
+        IReadOnlyList<NewsItem> items = await FetchAsync(source.Url, source.Kind, token);
         if (items.Count == 0) return 0;
 
         int added = 0;
@@ -101,15 +112,33 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
                 await db.Articles.Where(row => row.Id == known.ArticleId && row.ImageUrl == null)
                     .ExecuteUpdateAsync(update => update.SetProperty(row => row.ImageUrl, item.ImageUrl), token);
             if (changedTopics && source.LastSuccess is not null)
-                await CreateAlertsAsync(known.ArticleId, token);
+            {
+                DateTime created = DateTime.UtcNow;
+                await CreateAlertsAsync(known.ArticleId, created, token);
+                foreach (INotificationSender sender in senders)
+                    await QueueDeliveriesAsync(known.ArticleId, created, sender.Channel, token);
+            }
         }
         await transaction.CommitAsync(token);
         return added;
     }
 
-    private Task<int> CreateAlertsAsync(int articleId, CancellationToken token) => db.Database.ExecuteSqlAsync($"""
+    private async Task<IReadOnlyList<NewsItem>> FetchAsync(string url, SourceKind kind, CancellationToken token)
+    {
+        using HttpResponseMessage response = await http.GetAsync(url, token);
+        response.EnsureSuccessStatusCode();
+        await using Stream body = await response.Content.ReadAsStreamAsync(token);
+        return await NewsReader.ReadAsync(body, kind, token);
+    }
+
+    private static bool IsImportFailure(Exception error, CancellationToken token) =>
+        !token.IsCancellationRequested && error is (HttpRequestException or IOException or
+            System.Xml.XmlException or System.Text.Json.JsonException or InvalidOperationException or
+            KeyNotFoundException or ArgumentOutOfRangeException or DbUpdateException or OperationCanceledException);
+
+    private Task<int> CreateAlertsAsync(int articleId, DateTime created, CancellationToken token) => db.Database.ExecuteSqlAsync($"""
         INSERT INTO ArticleAlerts (UserId, ArticleId, CreatedAt, Read)
-        SELECT audience.UserId, a.Id, {DateTime.UtcNow}, 0
+        SELECT audience.UserId, a.Id, {created}, 0
         FROM Articles a
         CROSS JOIN (SELECT UserId FROM UserTopics UNION SELECT UserId FROM UserLabels) audience
         WHERE a.Id = {articleId}
@@ -121,6 +150,18 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
                 AND (instr(lower(a.Title), label.Label) > 0 OR instr(lower(a.Description), label.Label) > 0)))
         ON CONFLICT (UserId, ArticleId) DO NOTHING
         """, token);
+
+    private Task<int> QueueDeliveriesAsync(int articleId, DateTime created, string channel, CancellationToken token) =>
+        db.Database.ExecuteSqlAsync($"""
+            INSERT INTO DeliveryAttempts (UserId, ArticleId, Channel, Status, UpdatedAt)
+            SELECT alert.UserId, alert.ArticleId, {channel}, {(int)DeliveryStatus.Pending}, {created}
+            FROM ArticleAlerts alert
+            WHERE alert.ArticleId = {articleId} AND alert.CreatedAt = {created}
+              AND coalesce((SELECT Enabled FROM ChannelPreferences choice
+                  WHERE choice.UserId = alert.UserId AND choice.Channel = {channel}),
+                  {channel == DeliveryChannels.Email}) = 1
+            ON CONFLICT (UserId, ArticleId, Channel) DO NOTHING
+            """, token);
 
     private static bool Matches(SourceTopic mapping, NewsItem item) =>
         string.IsNullOrWhiteSpace(mapping.Keywords) ||

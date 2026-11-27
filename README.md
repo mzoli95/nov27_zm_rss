@@ -16,7 +16,7 @@ The authentication forms require passwords of at least six characters. Keep the 
 ## Profile and news sources
 
 - In **Profile**, choose from the fixed topic catalog and optionally add comma-separated labels. A story matches when it belongs to a selected topic and contains at least one label, if labels are set. Labels alone can match across topics. Use **View matching news** to preview the matches.
-- In **Administration → News sources**, enter an approved HTTPS RSS or Atom URL and a topic. Save the same URL again to assign more topics. Optional comma-separated keywords restrict that source-to-topic assignment. Use **Run now** to import immediately.
+- In **Administration → News sources**, use **Add source** to open the editor. Enter an approved HTTPS RSS, Atom or USGS URL and select one or more topics. Optional comma-separated keywords restrict each assignment. **Test source** reads the live payload without saving or importing. You can edit or delete existing sources and use **Run now** to import immediately. Deleting a source preserves existing articles.
 - BBC World, Business and Technology are seeded. Business supplies the default coverage for **Economy**, **Stock Market** and **Crypto**. For additional crypto coverage, assign `https://cointelegraph.com/rss` to **Crypto**. For earthquake reports, select **USGS earthquakes**, enter `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` and select **Natural Disasters**.
 - Each source's first successful import populates the feed silently. Later new matches appear under the notification bell. Articles are deduplicated by normalized URL and exact normalized headline on the same UTC publication date.
 - Scheduled imports run every 30 minutes after enabling `News.Enabled` in local backend settings. Approve any additional feed domains in `News.AllowedHosts`. Check permitted use before enabling automated imports.
@@ -44,7 +44,15 @@ returning id, email, raw_app_meta_data ->> 'app_role' as app_role;
 
 Sign in as each account and open `/admin`. The backend checks the protected role through the Supabase Auth API. [Supabase user metadata and authorization](https://supabase.com/docs/guides/auth/managing-user-data)
 
-After bootstrapping the first administrator, add a Supabase `sb_secret_...` key as `Supabase.SecretKey` in the ignored backend local settings, or set `Supabase__SecretKey` in the backend environment. Restart the backend. In **Administration → User roles**, enter the target user's Supabase UUID and choose `User` or `Admin`. The backend sends the update to Supabase. Keep this key out of frontend configuration and Git.
+After bootstrapping the first administrator, add a Supabase `sb_secret_...` key as `Supabase.SecretKey` in the ignored backend local settings, or set `Supabase__SecretKey` in the backend environment. Restart the backend. In **Administration → Users**, search for the account by email and use **Make admin** or **Make user**. This key also lets the delivery worker resolve the current verified email. Keep it out of frontend configuration and Git.
+
+## Email and Slack delivery
+
+- **Profile → Delivery channels** starts with email selected and Slack unselected. Both use the verified Supabase account address.
+- **Administration → Delivery channels** shows provider availability, global enable/disable controls and recent delivery outcomes. Provider credentials are configured on the backend. See [local setup](docs/local-setup.md#email-slack-and-rss).
+- Slack uses an installed bot to find the matching account in its workspace and send a direct message. An account absent from that workspace cannot receive the DM.
+- Deliveries use a persisted queue. `Accepted` means the provider acknowledged the request. `Ambiguous` means the app could not confirm the outcome and will avoid automatically resending that attempt.
+- To add a new channel type, implement `INotificationSender` and register it in the backend. Channel preferences, global switches and queue processing use the registered adapters.
 
 Users can like articles in the feed and open **Liked posts** from the account menu. Likes are stored per account in SQLite.
 
