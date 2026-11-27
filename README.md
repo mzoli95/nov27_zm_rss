@@ -5,11 +5,34 @@ World Event Alerts is a web app in development for following world news and rece
 ## Run the application shell
 
 1. Install the .NET 11 SDK and Node.js 24.15 or newer in the Node 24 release line.
-2. Copy `backend/appsettings.Local.example.json` to `backend/appsettings.Local.json`. Set your Supabase project URL and **publishable key**. Enable email/password registration and email confirmation. Allow `http://localhost:4200/` and `http://localhost:4200/update-password` as redirect URLs. For admin access, add the verified Supabase user ID to `AdminUserIds`.
+2. Copy `backend/appsettings.Local.example.json` to `backend/appsettings.Local.json`. Set your Supabase project URL and **publishable key**. Enable email/password registration and email confirmation. Allow `http://localhost:4200/` and `http://localhost:4200/update-password` as redirect URLs.
 3. From `backend/`, set `ASPNETCORE_ENVIRONMENT=Development` and run `dotnet run --urls http://localhost:5090`. The API migrates SQLite on startup and seeds sample articles in Development.
 4. From `frontend/`, run `npm ci` and `npm start -- --proxy-config proxy.conf.json`. Open `http://localhost:4200`.
 
 Use the Supabase publishable key in this configuration. The API exposes it to Angular. The local configuration file, database and logs are excluded from Git.
+
+## Supabase roles and review accounts
+
+Verified accounts default to `User`. The backend uses the protected Supabase `app_metadata.app_role` field to grant `Admin`. The previous local `AdminUserIds` setting is obsolete.
+
+In an isolated Supabase test project, create these accounts under **Authentication → Users**. Choose a unique password for each account and keep the passwords outside Git. For seeded accounts, use the dashboard's email confirmation option.
+
+| Test account | Role | Expected result |
+| --- | --- | --- |
+| `admin@admin.com` | `Admin` | Feed and admin panel available |
+| `user@user.com` | `User` | Feed available, admin API returns 403 |
+
+In the Supabase SQL Editor, replace the placeholder UUID with the admin test user's ID from Authentication → Users and run the following. Copy the UUID carefully and verify the returned row. For the standard test account, leave the role unset or run the same statement with its UUID and `'User'`.
+
+```sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
+  || jsonb_build_object('app_role', 'Admin')
+where id = 'REPLACE_WITH_ADMIN_USER_UUID'::uuid
+returning id, email, raw_app_meta_data ->> 'app_role' as app_role;
+```
+
+Sign in as each account and open `/admin`. The backend checks the protected role through the Supabase Auth API. [Supabase user metadata and authorization](https://supabase.com/docs/guides/auth/managing-user-data)
 
 ## What the app will do
 

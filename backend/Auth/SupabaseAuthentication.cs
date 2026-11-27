@@ -27,9 +27,8 @@ public sealed class SupabaseAuthentication(
                 return AuthenticateResult.Fail("A verified account is required.");
 
             var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id) };
-            var config = services.GetRequiredService<IOptions<SupabaseSettings>>().Value;
-            if (config.AdminUserIds.Contains(user.Id, StringComparer.OrdinalIgnoreCase))
-                claims.Add(new Claim(ClaimTypes.Role, "admin"));
+            var role = user.AppMetadata?.AppRole == nameof(AppRole.Admin) ? AppRole.Admin : AppRole.User;
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, Scheme.Name));
             return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
