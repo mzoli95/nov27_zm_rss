@@ -26,6 +26,7 @@ builder.Services.AddHangfire(configuration => configuration.UseInMemoryStorage()
 builder.Services.AddHangfireServer(options => options.WorkerCount = 1);
 builder.Services.AddScoped<NewsJobs>();
 builder.Services.AddScoped<NewsSchedules>();
+builder.Services.AddScoped<AccountArchive>();
 builder.Services.AddScoped<INotificationSender, EmailSender>();
 builder.Services.AddHttpClient<SlackSender>(client => client.Timeout = TimeSpan.FromSeconds(8))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
@@ -84,6 +85,14 @@ app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSetting
     })).AllowAnonymous();
 
 RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
+api.MapGet("/account/access", () => Results.NoContent());
+api.MapPost("/account/archive", async (AccountArchive archive, System.Security.Claims.ClaimsPrincipal actor,
+    CancellationToken token) =>
+{
+    Guid userId = Guid.Parse(actor.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+    await archive.ArchiveAsync(userId, token);
+    return Results.NoContent();
+});
 RouteGroupBuilder schedule = api.MapGroup("/admin/schedules").RequireAuthorization(nameof(AppRole.Admin));
 schedule.MapGet("", (NewsSchedules schedules, CancellationToken token) => schedules.ViewAsync(token));
 schedule.MapPut("", (ScheduleIntervals intervals, NewsSchedules schedules, CancellationToken token) =>
