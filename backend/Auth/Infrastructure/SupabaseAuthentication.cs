@@ -26,6 +26,9 @@ public sealed class SupabaseAuthentication(
             if (user is null || !Guid.TryParse(user.Id, out _) || user.EmailConfirmedAt is null)
                 return AuthenticateResult.Fail("A verified account is required.");
 
+            if (await services.GetRequiredService<AccountArchive>().ContainsAsync(Guid.Parse(user.Id), Context.RequestAborted))
+                return AuthenticateResult.Fail("This account is archived.");
+
             List<Claim> claims = [new(ClaimTypes.NameIdentifier, user.Id)];
             AppRole role = user.AppMetadata?.AppRole == nameof(AppRole.Admin) ? AppRole.Admin : AppRole.User;
             claims.Add(new Claim(ClaimTypes.Role, role.ToString()));

@@ -7,13 +7,14 @@ import { profileActions, ProfilePreferences } from '../+state/profile.actions';
 import type { ProfileState } from '../+state/profile.reducer';
 import { selectProfile } from '../+state/profile.selectors';
 import { DeliveryPreferences } from '../delivery-preferences/delivery-preferences';
+import { AccountArchive } from '../account-archive/account-archive';
 
 interface PreferenceFields {
   labels: string;
 }
 
 @Component({
-  imports: [FormField, RouterLink, DeliveryPreferences],
+  imports: [FormField, RouterLink, DeliveryPreferences, AccountArchive],
   host: { class: 'mx-auto block max-w-3xl' },
   templateUrl: './profile.html',
 })

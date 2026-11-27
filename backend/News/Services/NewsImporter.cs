@@ -153,6 +153,7 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
         FROM Articles a
         CROSS JOIN (SELECT UserId FROM UserTopics UNION SELECT UserId FROM UserLabels) audience
         WHERE a.Id = {articleId}
+          AND NOT EXISTS (SELECT 1 FROM ArchivedAccounts archived WHERE archived.UserId = audience.UserId)
           AND (EXISTS (SELECT 1 FROM UserTopics ut JOIN ArticleTopics t ON t.Topic = ut.Topic
               WHERE ut.UserId = audience.UserId AND t.ArticleId = a.Id)
             OR EXISTS (SELECT 1 FROM UserTopics ut WHERE ut.UserId = audience.UserId AND ut.Topic = a.Topic)

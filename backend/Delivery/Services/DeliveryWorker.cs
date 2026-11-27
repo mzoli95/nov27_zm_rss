@@ -148,6 +148,8 @@ public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnume
         catch (Exception error) when (SupabaseDirectory.IsFailure(error, token)) { return DeliveryStatus.Failed; }
         if (recipient?.EmailConfirmedAt is null || string.IsNullOrWhiteSpace(recipient.Email))
             return DeliveryStatus.Skipped;
+        if (await new AccountArchive(db).ContainsAsync(attempt.UserId, token))
+            return DeliveryStatus.Skipped;
         return await sender.SendAsync(digest with { Email = recipient.Email }, token);
     }
 
