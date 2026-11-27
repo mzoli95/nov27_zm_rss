@@ -26,6 +26,7 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Import a live feed and replay a deterministic fixture twice. Verify deduplication, silent first import, topic filtering and loading the next page.
 - **Human review:** Review source configuration, feed UX and duplicate prevention.
 - **Commit:** `feat: import and browse RSS articles`
+- **Status:** Ready for review. Includes profile preferences, source assignments and basic in-app notifications. Live BBC and USGS import passed. Scheduled import is opt-in pending permitted-use review.
 
 ## 4. Alert rules and delivery
 

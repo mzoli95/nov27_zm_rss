@@ -9,6 +9,7 @@ export interface FeedQuery {
   search: string;
   sort: FeedSort;
   liked?: boolean;
+  preferred: boolean;
 }
 export interface Article {
   id: number;

@@ -2,6 +2,9 @@ import { Component, Signal, WritableSignal, effect, inject, signal } from '@angu
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { Auth } from './auth/auth';
+import { Store } from '@ngrx/store';
+import { Inbox, notificationActions } from './shell/+state/notifications.actions';
+import { selectInbox } from './shell/+state/notifications.selectors';
 
 enum HeaderPanel {
   Account,
@@ -32,16 +35,27 @@ enum HeaderPanel {
                   (click)="toggle(HeaderPanel.Notifications)"
                 >
                   <span aria-hidden="true" class="bi bi-bell block text-lg leading-none"></span>
-                  @if (unread() > 0) {
+                  @if (inbox().unread > 0) {
                     <span
                       class="absolute -top-1 right-0 rounded-full bg-primary px-1 text-xs text-white"
-                      >{{ unread() }}</span
+                      >{{ inbox().unread }}</span
                     >
                   }
                 </button>
                 @if (panel() === HeaderPanel.Notifications) {
                   <div class="menu-panel max-sm:-right-12">
-                    <p class="px-3 py-2 text-sm text-muted">No notifications yet.</p>
+                    @for (item of inbox().items.slice(0, 3); track item.id) {
+                      <a
+                        class="menu-link text-sm"
+                        [class.font-semibold]="!item.read"
+                        [href]="item.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >{{ item.title }}</a
+                      >
+                    } @empty {
+                      <p class="px-3 py-2 text-sm text-muted">No notifications yet.</p>
+                    }
                     <a class="menu-link" routerLink="/notifications" (click)="panel.set(null)"
                       >All notifications</a
                     >
@@ -103,15 +117,23 @@ enum HeaderPanel {
 })
 export class App {
   private readonly auth: Auth = inject(Auth);
+  private readonly store: Store = inject(Store);
   private readonly router: Router = inject(Router);
   protected readonly HeaderPanel: typeof HeaderPanel = HeaderPanel;
   protected readonly signedIn: Signal<boolean> = this.auth.signedIn;
   protected readonly isAdmin: Signal<boolean> = this.auth.isAdmin;
   protected readonly panel: WritableSignal<HeaderPanel | null> = signal(null);
-  protected readonly unread: Signal<number> = signal(0);
+  protected readonly inbox: Signal<Inbox> = this.store.selectSignal(selectInbox);
   protected readonly signOutError: WritableSignal<string> = signal('');
 
   constructor() {
+    effect(() =>
+      this.store.dispatch(
+        notificationActions.sync({
+          userId: this.auth.signedIn() ? this.auth.userId() : null,
+        }),
+      ),
+    );
     effect(() => {
       if (
         !this.signedIn() &&
@@ -125,6 +147,8 @@ export class App {
   }
 
   protected toggle(panel: HeaderPanel): void {
+    if (panel === HeaderPanel.Notifications && this.panel() !== panel)
+      this.store.dispatch(notificationActions.refresh());
     this.panel.update((current) => (current === panel ? null : panel));
   }
 

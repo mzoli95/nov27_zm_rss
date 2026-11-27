@@ -1,6 +1,6 @@
 # World Event Alerts
 
-World Event Alerts is a web app in development for following world news and receiving personalized alerts. The application shell includes authentication, a protected demo feed and an admin route. Live news ingestion and alert delivery are later milestones.
+World Event Alerts is a web app in development for following world news and receiving personalized alerts. The current milestone includes authentication, a protected news feed, profile preferences, source administration and in-app alerts.
 
 ## Run the application shell
 
@@ -12,6 +12,14 @@ World Event Alerts is a web app in development for following world news and rece
 Use the Supabase publishable key in this configuration. The API exposes it to Angular. The local configuration file, database and logs are excluded from Git.
 
 The authentication forms require passwords of at least six characters. Keep the Supabase project's minimum password length aligned with this setting.
+
+## Profile and news sources
+
+- In **Profile**, choose from the fixed topic catalog and optionally add comma-separated labels. A story matches when it belongs to a selected topic and contains at least one label, if labels are set. Labels alone can match across topics. Use **View matching news** to preview the matches.
+- In **Administration → News sources**, enter an approved HTTPS RSS or Atom URL and a topic. Save the same URL again to assign more topics. Optional comma-separated keywords restrict that source-to-topic assignment. Use **Run now** to import immediately.
+- BBC World, Business and Technology are seeded. Business supplies the default coverage for **Economy**, **Stock Market** and **Crypto**. For additional crypto coverage, assign `https://cointelegraph.com/rss` to **Crypto**. For earthquake reports, select **USGS earthquakes**, enter `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` and select **Natural Disasters**.
+- Each source's first successful import populates the feed silently. Later new matches appear under the notification bell. Articles are deduplicated by normalized URL and exact normalized headline on the same UTC publication date.
+- Scheduled imports run every 30 minutes after enabling `News.Enabled` in local backend settings. Approve any additional feed domains in `News.AllowedHosts`. Check permitted use before enabling automated imports.
 
 ## Supabase roles and review accounts
 
@@ -48,11 +56,11 @@ From `frontend/`, run `npm run lint` for Angular and TypeScript lint checks and 
 - Receive alerts in the app and through email or Slack. Email is the default external channel. Slack is available when an administrator has configured a destination.
 - Register with email, verify your address, reset your password and delete your account from your profile.
 
-The first demo focuses on RSS news. BBC World News is the initial source candidate, pending live validation and confirmation of permitted use. Price alerts are an optional extension.
+The first demo focuses on RSS news. BBC World RSS and USGS were verified in a live import smoke check. Confirmation of permitted use is still pending for the BBC feeds. Price alerts are an optional extension.
 
 ## What administrators can configure
 
-- **News sources:** Add approved RSS feeds, assign them to one or more topics, set polling intervals, test connections, and run imports on demand. Each source can be enabled or paused.
+- **News sources:** Add approved RSS, Atom and USGS feeds, assign them to topics and run imports on demand. Scheduled polling is configured on the backend.
 - **Users and rules:** Manage accounts and edit or pause saved alert rules, including their topics, tags, keywords, phrases and selected sources.
 - **Delivery channels:** Configure and test destinations for supported channels, and enable or disable a channel globally. The admin panel will show import and delivery outcomes.
 

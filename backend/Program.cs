@@ -2,11 +2,24 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using WorldEventAlerts.Auth;
 using WorldEventAlerts.Feed;
+using WorldEventAlerts.News;
+using System.Text.Json.Serialization;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
 builder.Services.Configure<SupabaseSettings>(builder.Configuration.GetSection("Supabase"));
+builder.Services.Configure<NewsOptions>(builder.Configuration.GetSection("News"));
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
+builder.Services.AddSingleton<ImportGate>();
+builder.Services.AddScoped<SourcePolicy>();
+builder.Services.AddHttpClient<NewsImporter>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(12);
+    client.MaxResponseContentBufferSize = 2_000_000;
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddHostedService<NewsWorker>();
 builder.Services.AddHttpClient<SupabaseIdentity>(client => client.Timeout = TimeSpan.FromSeconds(8));
 builder.Services.AddHttpClient<RoleAdministration>(client => client.Timeout = TimeSpan.FromSeconds(8))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
@@ -25,6 +38,7 @@ app.UseAuthorization();
     await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
     FeedDb database = scope.ServiceProvider.GetRequiredService<FeedDb>();
     await database.Database.MigrateAsync();
+    await NewsDefaults.InitializeAsync(database);
     if (app.Environment.IsDevelopment()) await DemoArticles.InitializeAsync(database);
 }
 
@@ -38,6 +52,19 @@ app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSetting
 RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("/feed", FeedEndpoints.Read);
 api.MapPut("/feed/{id:int}/like", FeedEndpoints.SetLike);
+api.MapGet("/profile/preferences", PreferencesEndpoints.Read);
+api.MapPut("/profile/preferences", PreferencesEndpoints.Write);
+api.MapGet("/topics", () => NewsTopics.All);
+api.MapGet("/notifications", NotificationsEndpoints.Read);
+api.MapPost("/notifications/read", NotificationsEndpoints.MarkRead);
+RouteGroupBuilder sources = api.MapGroup("/admin/sources").RequireAuthorization(nameof(AppRole.Admin));
+sources.MapGet("/", SourceEndpoints.Read);
+sources.MapPost("/", SourceEndpoints.Add);
+sources.MapPost("/{id:int}/run", async (int id, NewsImporter importer, CancellationToken token) =>
+{
+    ImportResult result = await importer.RunAsync(id, token);
+    return result.Error is null ? Results.Ok(result) : Results.BadRequest(new { message = result.Error });
+});
 api.MapGet("/admin/access", () => Results.NoContent()).RequireAuthorization(nameof(AppRole.Admin));
 api.MapPut("/admin/users/{id:guid}/role",
     (Guid id, ChangeRoleRequest request, RoleAdministration roles,

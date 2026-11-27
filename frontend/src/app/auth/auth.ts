@@ -45,6 +45,7 @@ export class Auth {
     () => this.signedIn() && this.session()?.user.app_metadata['app_role'] === AppRole.Admin,
   );
   readonly email: Signal<string> = computed(() => this.session()?.user.email ?? '');
+  readonly userId: Signal<string | null> = computed(() => this.session()?.user.id ?? null);
   readonly ready: Promise<void> = this.initialize().catch(() => this.session.set(null));
 
   async submit(mode: AuthMode, credentials: AuthCredentials): Promise<string | null> {

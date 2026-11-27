@@ -13,7 +13,7 @@ git show FETCH_HEAD:docs/appsettings.integrations.example.json > backend\appsett
 notepad backend\appsettings.Local.json
 ```
 
-Set `Supabase.Url` to your Supabase project URL and `Supabase.PublishableKey` to the `sb_publishable_...` key. Keep `AdminUserIds` empty for a normal account. To grant demo admin access, add the verified user's Supabase UUID to that array and restart the backend.
+Set `Supabase.Url` to your Supabase project URL and `Supabase.PublishableKey` to the `sb_publishable_...` key. For admin access, follow the [Supabase roles instructions](../README.md#supabase-roles-and-review-accounts).
 
 In your Supabase project, enable email/password registration and email confirmation. Set the Auth Site URL to `http://localhost:4200` and allow these redirect URLs.
 
@@ -57,6 +57,6 @@ The JSON example also reserves configuration for upcoming application integratio
 | --- | --- | --- |
 | `Notifications.Email` | Application alert emails | SMTP host, provider port and TLS mode, credentials, and verified sender address. |
 | `Notifications.Slack` | Application alerts to a Slack destination | Incoming webhook URL for the intended channel. [Slack incoming webhooks](https://api.slack.com/messaging/webhooks) |
-| `Rss` | Scheduled ingestion | A 30-minute default interval and URLs for BBC World, BBC Business and Cointelegraph. These RSS endpoints have no API key. Validate feed content and permitted use before enabling. |
+| `News` | Scheduled ingestion | Enable the scheduler, set the interval, and approve feed domains. Use **Administration → News sources** to assign endpoints. Check permitted use before enabling. |
 
-Keep SMTP credentials and the Slack webhook in local configuration. The delivery and RSS milestones will wire these sections into the backend.
+Keep SMTP credentials and the Slack webhook in local configuration. The delivery milestone will wire these notification settings into the backend.

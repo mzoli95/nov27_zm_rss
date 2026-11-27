@@ -100,3 +100,10 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Replaced the SVG masks and CSS-drawn chevron with the locally bundled Bootstrap Icons font. Kept accessible names and selected states.
 - **Decision and origin:** The user requested library icons and gave the account chevrons as an example. The assistant chose the MIT-licensed Bootstrap Icons font.
 - **Verification:** Edge confirmed font loading, both chevron states, password visibility and the heart transition.
+
+## Profile preferences and topic sources
+
+- **User request:** Build profile preferences with fixed topics and custom labels. Let admins assign additional news portals and a disaster feed to topics, keep news unique, and grant Admin to the supplied Supabase account.
+- **Assistant response:** Added user-scoped preferences, a matching feed view, admin source assignment, scheduled and manual RSS/Atom and USGS imports, duplicate detection, and a persistent in-app inbox. Admin bootstrap is still pending privileged Supabase access.
+- **Decision and origin:** The user chose separate Crypto, Stock Market and Economy topics, BBC as baseline coverage, additional topic-specific sources and duplicate prevention. The assistant proposed optional assignment keywords, silent first imports, conservative deduplication by canonical URL and same-day normalized headline, and keeping scheduled fetching opt-in while feed usage is under review.
+- **Verification:** A first migration run exposed a collision between snapshot entity names and runtime CLR mappings. Replaced the shared snapshot mapping with explicit snapshot entities and reran successfully. SQLite fixture checks passed preference storage, RSS image extraction, silent first import, alert matching, duplicate suppression and read status. Live imports returned 35 BBC World articles and 8 USGS reports. Immediate replays added zero for both. Build, lint, formatting and mocked browser flows passed, and unauthenticated calls to profile, source and inbox endpoints returned 401.

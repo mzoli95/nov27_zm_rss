@@ -61,7 +61,7 @@ See [MILESTONES.md](MILESTONES.md) for GitHub review checkpoints, validation ste
 | --- | --- | --- |
 | In progress | Scope and source validation | Initial plan and agent instructions. Save a live RSS response summary and verify permitted use. Record compatibility decisions. |
 | Pending | Workspace and accounts | Root Git repo, frontend/ and backend/, clean builds, migration, signup, recovery, and a denied admin call from a normal account. |
-| Pending | News feed and sources | Live import, topic assignment, 30-minute configurable job and manual run. Import the same sample twice. Show cursor pagination and lazy admin loading. |
+| Ready for review | News feed and sources | Profile preferences, topic assignment, scheduled and manual imports, RSS images, and duplicate checks. Live BBC and USGS import checked. Confirm permitted use before enabling scheduled imports. |
 | Pending | Rules and delivery | Matching and nonmatching samples, saved inbox entries, real email and Slack smoke tests where credentials are available. Demonstrate channel-independent failures. |
 | Pending | Admin, realtime and deletion | Edit users and rules, configure and disable channels, verify online and offline views, and test self-deletion and denied cross-account access. |
 | Pending | Final review and handoff | Fresh checkout setup, reproducible end-to-end demo, evidence and milestone commits. Report unresolved checks and actual integration status. |

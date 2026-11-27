@@ -41,6 +41,12 @@ import { selectFeed } from './+state/feed.selectors';
         </select></label
       >
       <button class="primary">Apply filters</button>
+      @if (!likedOnly) {
+        <label class="flex items-center gap-2 sm:col-span-4">
+          <input type="checkbox" class="accent-primary" [formField]="fields.preferred" /> My
+          interests only
+        </label>
+      }
     </form>
     @if (state().error) {
       <p role="alert" class="mb-4">
@@ -143,7 +149,8 @@ import { selectFeed } from './+state/feed.selectors';
 })
 export class Feed {
   private readonly store: Store = inject(Store);
-  protected readonly likedOnly: boolean = inject(ActivatedRoute).snapshot.data['liked'] === true;
+  private readonly route: ActivatedRoute = inject(ActivatedRoute);
+  protected readonly likedOnly: boolean = this.route.snapshot.data['liked'] === true;
   protected readonly state: Signal<FeedState> = this.store.selectSignal(selectFeed);
   protected readonly topics: readonly string[] = [
     'General News',
@@ -151,6 +158,10 @@ export class Feed {
     'Stock Market',
     'Natural Disasters',
     'Science & Technology',
+    'Wildlife',
+    'Cities',
+    'Politics',
+    'Economy',
   ];
   protected readonly placeholders: readonly number[] = [1, 2];
   protected readonly FeedSort: typeof FeedSort = FeedSort;
@@ -159,6 +170,7 @@ export class Feed {
     search: '',
     sort: FeedSort.Newest,
     liked: this.likedOnly,
+    preferred: this.route.snapshot.queryParamMap.get('preferred') === 'true',
   });
   protected readonly fields: FieldTree<FeedQuery> = form(this.query);
   private applied: FeedQuery = this.query();

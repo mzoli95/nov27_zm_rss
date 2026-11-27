@@ -5,6 +5,7 @@ import { AppRole } from '../auth/auth';
 import { adminActions } from './+state/admin.actions';
 import type { AdminState } from './+state/admin.reducer';
 import { selectAdmin } from './+state/admin.selectors';
+import { NewsSources } from './news-sources';
 
 interface RoleFields {
   userId: string;
@@ -12,7 +13,7 @@ interface RoleFields {
 }
 
 @Component({
-  imports: [FormField],
+  imports: [FormField, NewsSources],
   template: `<h1 class="text-3xl font-bold">Administration</h1>
     <section class="mt-6 rounded-xl border border-line bg-white p-5">
       <h2 class="text-xl font-semibold">User roles</h2>
@@ -43,6 +44,7 @@ interface RoleFields {
         <p class="mt-4" role="status">{{ state().message }}</p>
       }
     </section>
+    <app-news-sources />
     <div class="mt-6 grid gap-4 sm:grid-cols-2">
       @for (section of sections; track section) {
         <section class="rounded-xl border border-line bg-white p-5">
@@ -54,11 +56,7 @@ interface RoleFields {
 })
 export class Admin {
   private readonly store: Store = inject(Store);
-  protected readonly sections: readonly string[] = [
-    'Alert rules',
-    'News sources',
-    'Delivery channels',
-  ];
+  protected readonly sections: readonly string[] = ['Alert rules', 'Delivery channels'];
   protected readonly roles: readonly AppRole[] = [AppRole.User, AppRole.Admin];
   protected readonly state: Signal<AdminState> = this.store.selectSignal(selectAdmin);
   private readonly model: WritableSignal<RoleFields> = signal({ userId: '', role: AppRole.User });
