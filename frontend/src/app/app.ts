@@ -31,7 +31,7 @@ enum HeaderPanel {
                   [attr.aria-expanded]="panel() === HeaderPanel.Notifications"
                   (click)="toggle(HeaderPanel.Notifications)"
                 >
-                  <span aria-hidden="true" class="icon-bell"></span>
+                  <span aria-hidden="true" class="ui-icon icon-bell"></span>
                   @if (unread() > 0) {
                     <span
                       class="absolute -top-1 right-0 rounded-full bg-primary px-1 text-xs text-white"
@@ -56,7 +56,7 @@ enum HeaderPanel {
                   [attr.aria-expanded]="panel() === HeaderPanel.Account"
                   (click)="toggle(HeaderPanel.Account)"
                 >
-                  <span aria-hidden="true" class="icon-user"></span>
+                  <span aria-hidden="true" class="ui-icon icon-user"></span>
                   <span
                     aria-hidden="true"
                     class="icon-chevron"

@@ -86,3 +86,10 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Branched from the fetched main at `e867a63`. Applied the feedback across the app, added local illustrations and a favicon, and recorded the conventions in AGENTS.md.
 - **Decision and origin:** The user identified the changes during PR review. The assistant chose Angular ESLint and Prettier because TSLint is deprecated, used HTML/CSS icons after the candidate icon package rejected Angular 22, and kept password-bearing calls in the Auth service. The feed returns an empty page after one query. Live RSS thumbnail extraction remains part of RSS ingestion.
 - **Verification:** Angular build, ESLint, Prettier and .NET Release build passed. A temporary SQLite check passed image fixture coverage and like isolation. Edge with mocked API responses verified the skeleton, loaded image, source without an image, pagination, user/admin menu visibility and admin role form. The first admin form probe found that its wrapped label had an imprecise accessible name. Added an explicit label association and reran the check successfully.
+
+## Form validation and icon follow-up
+
+- **User request:** Keep the same review branch. Match the Supabase six-character minimum, validate email format with a regex, add a password visibility control, improve the header icons, and render likes as an icon-only toggle.
+- **Assistant response:** Added accessible field errors for auth and admin role forms, updated the password rule, and added consistent CSS icons for password visibility, notifications, account and like states.
+- **Decision and origin:** The user specified the password minimum and icon behavior. The assistant chose to show validation errors after a field is touched or the form is submitted.
+- **Verification:** Angular build, ESLint and Prettier passed. Edge with mocked API responses verified that invalid email, a five-character password and an unchecked privacy notice block registration, while six characters pass the client check. Also verified both password visibility states, malformed admin UUID feedback and the outline-to-filled heart transition.

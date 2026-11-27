@@ -1,5 +1,5 @@
 import { Component, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
-import { FieldTree, FormField, email, form, minLength, required } from '@angular/forms/signals';
+import { FieldTree, FormField, form, minLength, pattern, required } from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Auth, AuthMode } from './auth';
 
@@ -9,6 +9,9 @@ interface AuthFields {
   accepted: boolean;
 }
 
+const MINIMUM_PASSWORD_LENGTH: number = 6;
+const EMAIL_FORMAT: RegExp = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
+
 @Component({
   imports: [FormField, RouterLink],
   template: `
@@ -17,33 +20,79 @@ interface AuthFields {
       @if (!configured()) {
         <p class="mt-3 text-muted">Supabase configuration is required to use this form.</p>
       }
-      <form class="mt-6 grid gap-4" (submit)="submit($event)">
+      <form novalidate class="mt-6 grid gap-4" (submit)="submit($event)">
         @if (mode !== AuthMode.Update) {
-          <label>Email<input type="email" autocomplete="email" [formField]="fields.email" /></label>
+          <div>
+            <label for="auth-email">Email</label>
+            <input
+              id="auth-email"
+              type="email"
+              autocomplete="email"
+              [formField]="fields.email"
+              [attr.aria-invalid]="emailError() ? true : null"
+              [attr.aria-describedby]="emailError() ? 'email-error' : null"
+            />
+            @if (emailError(); as error) {
+              <p id="email-error" class="mt-1 text-sm text-red-700">{{ error }}</p>
+            }
+          </div>
         }
         @if (mode !== AuthMode.Forgot) {
-          <label
-            >{{ mode === AuthMode.Update ? 'New password' : 'Password' }}
-            <input
-              type="password"
-              [autocomplete]="mode === AuthMode.Login ? 'current-password' : 'new-password'"
-              [formField]="fields.password"
-            />
-          </label>
+          <div>
+            <label for="auth-password">{{
+              mode === AuthMode.Update ? 'New password' : 'Password'
+            }}</label>
+            <div class="relative">
+              <input
+                id="auth-password"
+                [type]="passwordVisible() ? 'text' : 'password'"
+                class="password-input"
+                [autocomplete]="mode === AuthMode.Login ? 'current-password' : 'new-password'"
+                [formField]="fields.password"
+                [attr.aria-invalid]="passwordError() ? true : null"
+                [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-1 my-1 grid aspect-square place-items-center rounded-md text-muted hover:bg-tint hover:text-primary"
+                (click)="togglePassword()"
+                [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+              >
+                <span
+                  class="ui-icon"
+                  [class.icon-eye]="!passwordVisible()"
+                  [class.icon-eye-off]="passwordVisible()"
+                  aria-hidden="true"
+                ></span>
+              </button>
+            </div>
+            @if (passwordError(); as error) {
+              <p id="password-error" class="mt-1 text-sm text-red-700">{{ error }}</p>
+            }
+          </div>
         }
         @if (mode === AuthMode.Register) {
           <p class="text-sm text-muted">
             We use your email to manage your account and deliver the alerts you enable.
           </p>
           <label class="flex items-start gap-2 text-sm">
-            <input class="mt-1 accent-primary" type="checkbox" [formField]="fields.accepted" />
+            <input
+              class="mt-1 accent-primary"
+              type="checkbox"
+              [formField]="fields.accepted"
+              [attr.aria-invalid]="privacyError() ? true : null"
+              [attr.aria-describedby]="privacyError() ? 'privacy-error' : null"
+            />
             I acknowledge the privacy notice above.
           </label>
+          @if (privacyError(); as error) {
+            <p id="privacy-error" class="text-sm text-red-700">{{ error }}</p>
+          }
         }
         @if (feedback()) {
           <p class="text-sm text-muted" role="status">{{ feedback() }}</p>
         }
-        <button class="primary" [disabled]="busy() || !configured() || fields().invalid()">
+        <button class="primary" [disabled]="busy() || !configured()">
           {{ busy() ? 'Please wait…' : title() }}
         </button>
       </form>
@@ -81,22 +130,40 @@ export class AuthPage {
   });
   protected readonly fields: FieldTree<AuthFields> = form(this.model, (path) => {
     if (this.mode !== AuthMode.Update) {
-      required(path.email);
-      email(path.email);
+      required(path.email, { message: 'Enter your email address.' });
+      pattern(path.email, EMAIL_FORMAT, { message: 'Enter a valid email address.' });
     }
-    if (this.mode !== AuthMode.Forgot) required(path.password);
-    if (this.mode === AuthMode.Register || this.mode === AuthMode.Update)
-      minLength(path.password, 8);
-    if (this.mode === AuthMode.Register) required(path.accepted);
+    if (this.mode !== AuthMode.Forgot) {
+      required(path.password, { message: 'Enter your password.' });
+      minLength(path.password, MINIMUM_PASSWORD_LENGTH, {
+        message: 'Use at least six characters.',
+      });
+    }
+    if (this.mode === AuthMode.Register)
+      required(path.accepted, { message: 'Acknowledge the privacy notice to continue.' });
   });
   protected readonly busy: WritableSignal<boolean> = signal(false);
   protected readonly feedback: WritableSignal<string> = signal('');
+  protected readonly passwordVisible: WritableSignal<boolean> = signal(false);
+  private readonly submitted: WritableSignal<boolean> = signal(false);
+  protected readonly emailError: Signal<string | undefined> = this.fieldError(this.fields.email);
+  protected readonly passwordError: Signal<string | undefined> = this.fieldError(
+    this.fields.password,
+  );
+  protected readonly privacyError: Signal<string | undefined> = this.fieldError(
+    this.fields.accepted,
+  );
+
+  protected togglePassword(): void {
+    this.passwordVisible.update((visible) => !visible);
+  }
 
   protected async submit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
+    this.submitted.set(true);
+    this.feedback.set('');
     if (!this.configured() || this.busy() || this.fields().invalid()) return;
     this.busy.set(true);
-    this.feedback.set('');
     try {
       const message: string | null = await this.auth.submit(this.mode, {
         email: this.model().email.trim(),
@@ -109,5 +176,11 @@ export class AuthPage {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  private fieldError<T>(field: FieldTree<T>): Signal<string | undefined> {
+    return computed(() =>
+      this.submitted() || field().touched() ? field().errors()[0]?.message : undefined,
+    );
   }
 }

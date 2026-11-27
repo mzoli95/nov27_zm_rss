@@ -79,13 +79,18 @@ import { selectFeed } from './+state/feed.selectors';
             <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3">
               <button
                 type="button"
-                class="rounded-lg border border-line px-3 py-2 font-medium text-primary hover:bg-tint"
+                class="grid size-10 place-items-center rounded-full text-muted hover:bg-tint hover:text-primary aria-pressed:text-primary disabled:opacity-50"
                 [attr.aria-pressed]="article.liked"
                 [attr.aria-label]="'Like: ' + article.title"
                 [disabled]="state().pendingLikes.includes(article.id)"
                 (click)="toggleLike(article)"
               >
-                {{ article.liked ? '♥ Liked' : '♡ Like' }}
+                <span
+                  class="ui-icon"
+                  aria-hidden="true"
+                  [class.icon-heart]="!article.liked"
+                  [class.icon-heart-filled]="article.liked"
+                ></span>
               </button>
               <a
                 class="ml-auto font-semibold text-primary hover:underline"

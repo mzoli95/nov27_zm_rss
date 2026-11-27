@@ -11,6 +11,8 @@ World Event Alerts is a web app in development for following world news and rece
 
 Use the Supabase publishable key in this configuration. The API exposes it to Angular. The local configuration file, database and logs are excluded from Git.
 
+The authentication forms require passwords of at least six characters. Keep the Supabase project's minimum password length aligned with this setting.
+
 ## Supabase roles and review accounts
 
 Verified accounts default to `User`. The backend uses the protected Supabase `app_metadata.app_role` field to grant `Admin`. The previous local `AdminUserIds` setting is obsolete.
