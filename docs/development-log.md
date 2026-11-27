@@ -45,6 +45,12 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Decision and origin:** The user authorized the first upload and chose the repository. The assistant used the existing local main branch for the initial review baseline.
 - **Verification:** The first staged whitespace check flagged a blank line in this log and PDF cross-reference records. Removed the Markdown whitespace and marked PDF and DOCX files as binary to preserve their bytes in Git.
 
+## Local integration setup
+
+- **User request:** Document how to run both projects from Windows CMD, show where to enter the Supabase project configuration, and prepare email, Slack and RSS settings.
+- **Assistant response:** Added a CMD setup guide and a JSON example for Supabase, application SMTP, a Slack webhook and the three planned RSS sources.
+- **Decision and origin:** The user created the Supabase project and requested the integration configuration. The assistant documented Supabase Auth email separately from application alert email, and used a branch based on remote main because the application shell was still under separate review.
+
 ## Application shell and authentication
 
 - **User request:** Start a new branch from the newly merged main. Create separate frontend and backend projects, configure Supabase, protect the feed and other application routes, and build sign-in and registration forms, a header and footer, account and notification controls, and a sortable and filterable feed of 20 items per page. Choose a reusable blue Tailwind palette and document it.
