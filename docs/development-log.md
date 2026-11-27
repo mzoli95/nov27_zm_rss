@@ -100,3 +100,93 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Replaced the SVG masks and CSS-drawn chevron with the locally bundled Bootstrap Icons font. Kept accessible names and selected states.
 - **Decision and origin:** The user requested library icons and gave the account chevrons as an example. The assistant chose the MIT-licensed Bootstrap Icons font.
 - **Verification:** Edge confirmed font loading, both chevron states, password visibility and the heart transition.
+
+## Profile preferences and topic sources
+
+- **User request:** Build profile preferences with fixed topics and custom labels. Let admins assign additional news portals and a disaster feed to topics, keep news unique, and grant Admin to the supplied Supabase account.
+- **Assistant response:** Added user-scoped preferences, a matching feed view, admin source assignment, scheduled and manual RSS/Atom and USGS imports, duplicate detection, and a persistent in-app inbox. Admin bootstrap is still pending privileged Supabase access.
+- **Decision and origin:** The user chose separate Crypto, Stock Market and Economy topics, BBC as baseline coverage, additional topic-specific sources and duplicate prevention. The assistant proposed optional assignment keywords, silent first imports, conservative deduplication by canonical URL and same-day normalized headline, and keeping scheduled fetching opt-in while feed usage is under review.
+- **Verification:** A first migration run exposed a collision between snapshot entity names and runtime CLR mappings. Replaced the shared snapshot mapping with explicit snapshot entities and reran successfully. SQLite fixture checks passed preference storage, RSS image extraction, silent first import, alert matching, duplicate suppression and read status. Live imports returned 35 BBC World articles and 8 USGS reports. Immediate replays added zero for both. Build, lint, formatting and mocked browser flows passed, and unauthenticated calls to profile, source and inbox endpoints returned 401.
+
+## Profile and admin troubleshooting
+
+- **User report:** Profile preferences would not load, and Administration was hidden after granting the Supabase Admin role.
+- **Assistant response:** Confirmed the running backend returned 404 for the new profile route, rebuilt and restarted it, and changed menu visibility to use the API's current authorization decision at sign-in and when the account menu opens.
+- **Decision and origin:** The user assigned the hosted admin role. The assistant diagnosed the old local process and chose the backend authorization check as the menu's source of truth.
+- **Verification:** The hosted test account obtained 200 for preferences, 204 for admin access, and 200 for admin sources through the Angular proxy. Edge with stale session metadata confirmed that the link appeared when the backend began granting access. Angular build and ESLint passed.
+
+## Administration sections and external delivery
+
+- **User request:** Continue on the same branch. Split administration into sections, list users and assign roles by email, paginate sources, add a create/edit dialog with a dry run and deletion, and deliver alerts through email by default and opt-in Slack. Keep the sender system extensible.
+- **Assistant response:** Added Users, News sources and Delivery channels sections, paginated user and source endpoints, a source editor and a no-write test. Added provider availability and user preferences, and a persistent delivery queue with separate SMTP and Slack DM adapters and recent outcomes.
+- **Decision and origin:** The user specified the layout and the account email as the shared delivery identity. The assistant used the Slack bot API for personal messages because incoming webhooks post to a fixed destination. Source deletion preserves previously imported news. Registered adapters share preference and queue logic.
+- **Verification:** A SQLite upgrade test surfaced an EF tracking conflict when replacing source topics. Replaced the mapping write with parameterized inserts inside the transaction and reran successfully. The harness passed source CRUD and dry runs, directory search forwarding, default email, Slack opt-in, independent failure, disabled channels and deduplication. Edge verified the admin flows and mobile profile with mocked APIs. Both builds, ESLint and Prettier passed. The authenticated local API listed three sources and two channels and the live BBC dry run parsed 36 items. SMTP and Slack credentials, and the privileged hosted Supabase key for real user listing, were absent locally. Live receipt remains unverified.
+
+## Feed repair, recurring jobs and provider configuration
+
+- **User request:** Diagnose the feed error, document where the Supabase secret key goes, add per-source controls, run sources sequentially every 30 minutes, archive news older than seven days, and configure email and Slack from Admin. Find a free SMTP provider and preserve the email default with user opt-out.
+- **Assistant response:** Reproduced a 400 caused by the lowercase sort parameter binding to the backend enum. Fixed the boundary and added a clear empty-state action. Added Hangfire import/archive jobs, source flags, a styled email template and encrypted write-only provider settings. Documented Brevo and the Supabase key location.
+- **Decision and origin:** The user specified the cadence, retention and configuration workflow. The assistant chose in-process Hangfire storage, kept archived titles and deduplication identities in SQLite, preserved likes and inbox links, and pinned a patched JSON dependency after the package audit flagged a transitive version.
+- **Verification:** The previously failing authenticated feed query returned 200, with 20 cards in the unfiltered query and zero current interest matches. The local scheduler started, all three enabled sources have successful imports, and 47 articles were archived. SQLite and Edge checks covered disabled sources, retained likes, provider secrets omitted on read, and email opt-out. Both builds, lint and format passed. Provider receipt still requires real SMTP, Slack and Supabase credentials.
+
+## Responsive article images and alert digests
+
+- **User request:** Improve pixelated images and send links to new matching articles by email and Slack. Group multiple articles from a half-hour window. Keep the same review branch and explain Slack setup.
+- **Assistant response:** Added responsive BBC image sizes, avoided enlarging thumbnails from sources without variants, selected suitable RSS image candidates, and grouped queued deliveries by account, channel and closed UTC half-hour window. Updated the email and Slack templates to list individual links.
+- **Decision and origin:** The user requested image optimization and digest behavior. The assistant used four verified BBC variants and a 40-link message cap to fit Slack's layout limits.
+- **Verification:** Measured real BBC candidates from 320 to 976 pixels. Edge selected 480 pixels on mobile and 976 on desktop. The SQLite harness verified separate windows, no early or duplicate delivery, independent channel outcomes and links in HTML, plain text and mocked Slack DM payloads. Angular build, lint and Prettier passed. The local Supabase secret is present. Real SMTP and Slack settings were absent and receipt remains unverified.
+
+## Email digest limit and Slack setup
+
+- **User request:** Limit emails to five unique article links, show top matching labels, keep all matches in the app, and explain where Slack app setup starts from the workspace screen.
+- **Assistant response:** Limited each email window to the five newest distinct links. Added up to five labels ranked by match count across the full window. Kept inbox entries and marked emails' remaining articles as omitted in the delivery log. Expanded the Slack setup steps.
+- **Verification:** A SQLite fixture with 55 matches and a repeated canonical URL produced one email with five distinct links, five ranked labels, and all 55 in-app entries retained. Rerunning did not resend. The first label aggregation was rejected by EF Core; a SQL-translatable projection passed the rerun. Live provider credentials were still absent.
+
+### Independent topic and label matching
+
+The user requested topic-based alerts even when custom labels are present, plus a shared editable message template and configuration for additional channels. The AI aligned the personalized feed and alert creation with independent topic and label matches. Runtime verification was blocked by the local command runner.
+The AI reused the blue email layout and added a shared admin template editor with preview and reset. Teams, Discord and Telegram provider credentials can be staged in the admin panel. Email and Slack are the active adapters.
+
+### Admin test delivery
+
+The user requested a test-send action for the configured channel. The AI added an admin-only action that uses the saved template and sends a sample to the acting admin's verified email or matching Slack account. Angular and .NET builds passed. An unauthenticated request returned HTTP 401 through the local proxy. Live delivery was not triggered during verification.
+
+### Admin pagination and source controls
+
+The user requested Material pagination, a green or red source switch, and tooltip-labeled source actions. The AI applied Material pagination to the user and source lists and used the existing Bootstrap icon font for editing, running and deleting sources. The user also asked to document the decision to stage only known providers. New integrations require a defined configuration and delivery adapter.
+
+### Admin startup and Slack test connection
+
+The user reported an initial unauthorized admin access check and a refused connection during a Slack test. The AI made both admin checks wait for session initialization and distinguish role discovery from admin authorization. It added a clear message for browser connection failures. The local proxy reached the protected Slack test endpoint, and the machine reached the Slack API over HTTPS. Live delivery was not triggered.
+
+### Delivery feedback
+
+The user requested a loading indicator and a discreet result notification for sending. The AI added a spinner to the active test button and a bottom-right notification for accepted, failed and uncertain outcomes. Provider configuration also shows a saving indicator and a success notification.
+
+### Slack test diagnostics
+
+The user reported that a saved template still produced a failed Slack test. The AI traced the email lookup, direct-message opening and posting steps. The admin test now returns stage-specific troubleshooting hints without exposing provider credentials or recipient details. Both builds passed and the local API was restarted. Live Slack delivery was not exercised.
+
+The user then showed that the Slack test reached chat.postMessage. The AI exposed the Slack error code in the admin diagnostic and added guidance for a disabled Messages Tab and workspace posting restrictions.
+
+### Sign-up confirmation view
+
+The user requested a dedicated confirmation screen after sign-up. The AI replaced the form with a confirmation message and a Back to home action when Supabase requires email verification. The destination remains protected by the session guard.
+
+### Manual source import feedback
+
+The user reported that manual import appeared to do nothing. The screenshot showed a successful run with zero newly added articles. The AI added a source-level progress indicator and a clear successful completion message for an empty import.
+
+The user clarified that BBC showed newer content than the app. The AI compared the three live RSS feeds with local SQLite and found that a known URL had a newer publication timestamp in RSS. The importer now updates the existing article when the same URL has a newer timestamp, without creating a second article.
+
+### Scheduled job intervals
+
+The user asked to configure how often the scheduled jobs run. The AI added a Scheduled jobs admin tab with separate interval choices for importing and archiving. Saved choices persist in SQLite and update Hangfire immediately.
+
+### Additional delivery channel preparation
+
+The user requested additional preparation for Teams, Discord and Telegram on the same review branch. The AI added stable channel identifiers and documented the private destination each future adapter needs. The existing admin configuration remains available for staging provider credentials.
+
+### Angular component templates
+
+The user asked to separate HTML and custom CSS from TypeScript across the Angular app. The AI moved inline templates to sibling HTML files, retained Tailwind utilities in the markup and recorded the convention in AGENTS.md.

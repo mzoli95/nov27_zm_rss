@@ -1,6 +1,6 @@
 # World Event Alerts
 
-World Event Alerts is a web app in development for following world news and receiving personalized alerts. The application shell includes authentication, a protected demo feed and an admin route. Live news ingestion and alert delivery are later milestones.
+World Event Alerts is a web app in development for following world news and receiving personalized alerts. The current milestone includes authentication, a protected news feed, profile preferences, source administration and in-app alerts.
 
 ## Run the application shell
 
@@ -12,6 +12,16 @@ World Event Alerts is a web app in development for following world news and rece
 Use the Supabase publishable key in this configuration. The API exposes it to Angular. The local configuration file, database and logs are excluded from Git.
 
 The authentication forms require passwords of at least six characters. Keep the Supabase project's minimum password length aligned with this setting.
+
+## Profile and news sources
+
+- In **Profile**, choose from the fixed topic catalog and optionally add comma-separated labels. A story matches when it belongs to a selected topic and contains at least one label, if labels are set. Labels alone can match across topics. Use **View matching news** to preview the matches.
+- In **Administration → News sources**, use **Add source** to open the editor. Enter an approved HTTPS RSS, Atom or USGS URL and select one or more topics. Optional comma-separated keywords restrict each assignment. **Test source** reads the live payload without saving or importing. You can edit or delete existing sources and use **Run now** to import immediately. Deleting a source preserves existing articles.
+- BBC World, Business and Technology are seeded. Business supplies the default coverage for **Economy**, **Stock Market** and **Crypto**. For additional crypto coverage, assign `https://cointelegraph.com/rss` to **Crypto**. For earthquake reports, select **USGS earthquakes**, enter `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` and select **Natural Disasters**.
+- Each source's first successful import populates the feed silently. Later new matches appear under the notification bell. Articles are deduplicated by normalized URL and exact normalized headline on the same UTC publication date.
+- Hangfire runs enabled sources sequentially on startup and every 30 minutes by default. Sources can be paused individually. SQLite retains normalized article identities so reruns can skip duplicates.
+- The daily archive job removes summaries and image URLs from articles older than seven days, excludes them from the active feed, and compacts SQLite when rows were archived. Saved likes and existing inbox entries keep their titles and original links.
+- Approve any additional feed domains in `News.AllowedHosts`. Set `News.Enabled` to false to stop automatic imports. Review permitted use for the feeds you enable.
 
 ## Supabase roles and review accounts
 
@@ -36,7 +46,17 @@ returning id, email, raw_app_meta_data ->> 'app_role' as app_role;
 
 Sign in as each account and open `/admin`. The backend checks the protected role through the Supabase Auth API. [Supabase user metadata and authorization](https://supabase.com/docs/guides/auth/managing-user-data)
 
-After bootstrapping the first administrator, add a Supabase `sb_secret_...` key as `Supabase.SecretKey` in the ignored backend local settings, or set `Supabase__SecretKey` in the backend environment. Restart the backend. In **Administration → User roles**, enter the target user's Supabase UUID and choose `User` or `Admin`. The backend sends the update to Supabase. Keep this key out of frontend configuration and Git.
+After bootstrapping the first administrator, add a Supabase `sb_secret_...` key as `Supabase.SecretKey` in the ignored backend local settings, or set `Supabase__SecretKey` in the backend environment. Restart the backend. In **Administration → Users**, search for the account by email and use **Make admin** or **Make user**. This key also lets the delivery worker resolve the current verified email. Keep it out of frontend configuration and Git.
+
+## Email and Slack delivery
+
+- **Profile → Delivery channels** starts with email selected and Slack unselected. Both use the verified Supabase account address.
+- **Administration → Delivery channels** provides SMTP and Slack bot settings, global controls and recent outcomes. Provider secrets are encrypted in SQLite and hidden from subsequent reads. See [local setup](docs/local-setup.md#email-slack-and-rss).
+- Email alerts use the application's blue HTML template with a plain-text alternative. [Brevo SMTP setup](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP)
+- New matches are collected in half-hour UTC windows. Email includes up to five distinct recent articles and five matching labels, ordered by their match counts. The app retains the full set. Slack lists the articles individually in groups of up to 40. Empty windows send nothing.
+- Slack uses an installed bot to find the matching account in its workspace and send a direct message. An account absent from that workspace cannot receive the DM.
+- Deliveries use a persisted queue. `Accepted` means the provider acknowledged the request. `Ambiguous` means the app could not confirm the outcome and will avoid automatically resending that attempt.
+- To add a new channel type, implement `INotificationSender` and register it in the backend. Channel preferences, global switches and queue processing use the registered adapters.
 
 Users can like articles in the feed and open **Liked posts** from the account menu. Likes are stored per account in SQLite.
 
@@ -48,11 +68,11 @@ From `frontend/`, run `npm run lint` for Angular and TypeScript lint checks and 
 - Receive alerts in the app and through email or Slack. Email is the default external channel. Slack is available when an administrator has configured a destination.
 - Register with email, verify your address, reset your password and delete your account from your profile.
 
-The first demo focuses on RSS news. BBC World News is the initial source candidate, pending live validation and confirmation of permitted use. Price alerts are an optional extension.
+The first demo focuses on RSS news. BBC World RSS and USGS were verified in a live import smoke check. Confirmation of permitted use is still pending for the BBC feeds. Price alerts are an optional extension.
 
 ## What administrators can configure
 
-- **News sources:** Add approved RSS feeds, assign them to one or more topics, set polling intervals, test connections, and run imports on demand. Each source can be enabled or paused.
+- **News sources:** Add approved RSS, Atom and USGS feeds, assign them to topics and run imports on demand. Scheduled polling is configured on the backend.
 - **Users and rules:** Manage accounts and edit or pause saved alert rules, including their topics, tags, keywords, phrases and selected sources.
 - **Delivery channels:** Configure and test destinations for supported channels, and enable or disable a channel globally. The admin panel will show import and delivery outcomes.
 

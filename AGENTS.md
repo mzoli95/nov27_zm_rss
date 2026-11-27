@@ -23,6 +23,8 @@
 - Start with the latest stable Angular 22 release and a compatible stable NgRx and Node.js version. Confirm exact versions during scaffolding and commit the lockfile.
 - Use standalone components, lazy-loaded feature routes and cursor-based feed pagination. Keep admin code behind its own route. Use accessible forms, loading and error states, and a keyboard-accessible way to load more feed items.
 - Use Tailwind CSS for styling. Design mobile-first responsive screens with clear navigation, readable forms, keyboard focus and touch-friendly controls. Verify user and admin flows on narrow and wide viewports.
+- Use Angular Material paginator for numbered lists. Keep cursor-based news feeds scrollable.
+- Keep Angular templates in sibling HTML files. Use Tailwind utilities in templates and separate CSS files for custom styles.
 - Reuse the Tailwind theme tokens in frontend/src/styles.css. Use ink (#11243b), muted (#4b6179), primary (#1759b0), primary-hover (#12468b), page (#f4f8fe), line (#d7e3f2), and tint (#e4efff).
 - Start each new implementation branch from the latest remote main and send it for review.
 - Use NgRx for shared feature state. Place actions, effects, reducers and selectors in the feature's `+state/` folder. Keep transient form and component state local. Effects coordinate I/O, reducers stay pure, and selectors derive view data.

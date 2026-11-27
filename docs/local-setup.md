@@ -13,7 +13,7 @@ git show FETCH_HEAD:docs/appsettings.integrations.example.json > backend\appsett
 notepad backend\appsettings.Local.json
 ```
 
-Set `Supabase.Url` to your Supabase project URL and `Supabase.PublishableKey` to the `sb_publishable_...` key. Keep `AdminUserIds` empty for a normal account. To grant demo admin access, add the verified user's Supabase UUID to that array and restart the backend.
+Set `Supabase.Url` to your Supabase project URL and `Supabase.PublishableKey` to the `sb_publishable_...` key. For admin access, follow the [Supabase roles instructions](../README.md#supabase-roles-and-review-accounts).
 
 In your Supabase project, enable email/password registration and email confirmation. Set the Auth Site URL to `http://localhost:4200` and allow these redirect URLs.
 
@@ -51,12 +51,16 @@ npx --yes --package=node@24.15.0 -- node node_modules\@angular\cli\bin\ng.js ser
 
 Supabase sends signup confirmation and password-reset emails. Configure its custom SMTP in the Supabase dashboard when sending to users outside the project team. [Supabase custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp)
 
-The JSON example also reserves configuration for upcoming application integrations. The current shell uses the Supabase section. It reads demo articles from SQLite.
+The user directory and both alert adapters need the backend-only `Supabase.SecretKey` to read the current verified account email. Find the `sb_secret_...` key under **Settings → API Keys → Publishable and secret API keys** in the Supabase dashboard. Put it under `Supabase.SecretKey` in `backend/appsettings.Local.json`, then restart the backend. [Supabase API keys](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys)
 
 | Section | Purpose | Values to prepare |
 | --- | --- | --- |
-| `Notifications.Email` | Application alert emails | SMTP host, provider port and TLS mode, credentials, and verified sender address. |
-| `Notifications.Slack` | Application alerts to a Slack destination | Incoming webhook URL for the intended channel. [Slack incoming webhooks](https://api.slack.com/messaging/webhooks) |
-| `Rss` | Scheduled ingestion | A 30-minute default interval and URLs for BBC World, BBC Business and Cointelegraph. These RSS endpoints have no API key. Validate feed content and permitted use before enabling. |
+| `Notifications.Email` | Application alert emails | In **Administration → Delivery channels → Email → Configure**, enter `smtp-relay.brevo.com`, port `587`, STARTTLS, the Brevo SMTP login and generated SMTP key, and a verified sender address. Brevo's free plan includes up to 300 sends per day. [Brevo SMTP setup](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP) · [Free plan limits](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan) |
+| `Notifications.Slack` | Personal Slack alerts | Install a Slack app with the bot scopes `users:read`, `users:read.email`, `im:write` and `chat:write`. In **Administration → Delivery channels → Slack → Configure**, enter its bot token. The member's Slack email must match the verified app email. [Slack email lookup](https://docs.slack.dev/reference/methods/users.lookupByEmail/) |
+| `News` | Scheduled ingestion | Hangfire runs enabled sources sequentially on startup and every 30 minutes by default. Individual sources can be paused in Admin. Set `News.Enabled` to false to stop automatic imports. The archive runs daily at 02:15 UTC and at startup. |
 
-Keep SMTP credentials and the Slack webhook in local configuration. The delivery and RSS milestones will wire these sections into the backend.
+Backend JSON remains a fallback for SMTP and Slack. The admin form stores encrypted provider settings in SQLite. Keep the local `.keys` folder with the database so those settings can still be decrypted. Hangfire's job history is in memory and recurring jobs are registered on startup. Supabase authentication email and application alert email have separate settings.
+
+To configure Slack, open [Your Apps](https://api.slack.com/apps), choose **Create New App → From scratch**, and select your workspace. In **OAuth & Permissions → Bot Token Scopes**, add `users:read`, `users:read.email`, `im:write` and `chat:write`. Use **Install to Workspace** and allow the requested scopes. Copy the **Bot User OAuth Token** starting with `xoxb-` into **Administration → Delivery channels → Slack → Configure**. Turn on Slack in **Profile → Delivery channels** for a verified registration email that also belongs to that workspace. Messages arrive by DM from the app. [Slack app setup](https://docs.slack.dev/app-management/quickstart-app-settings/)
+
+Delivery waits until its half-hour window ends and includes only newly matched articles. Email includes the five newest distinct links and up to five matching labels with their match counts. Remaining email entries show as `Omitted` in the delivery log and stay available in the app. For a live test, complete the first silent import, enable your preferred channel, then use a source that publishes a new matching item. Check the result in **Recent delivery attempts** and verify receipt separately.

@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'bootstrap-icons/font/bootstrap-icons.css' layer(components);
+@import '@angular/material/prebuilt-themes/azure-blue.css' layer(components);
 
 @theme {
   --color-ink: #11243b;
