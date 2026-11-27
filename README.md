@@ -1,6 +1,6 @@
 # World Event Alerts
 
-World Event Alerts is a web app in development for following world news and receiving personalized alerts. The current milestone includes authentication, a protected news feed, profile preferences, source administration and in-app alerts.
+World Event Alerts is a web app in development for following world news and receiving personalized alerts. Users can follow a protected news feed, set preferences and receive alerts in the app, by email or in Slack. Admins manage sources, schedules, channels and message templates.
 
 ## Run the application shell
 
@@ -15,11 +15,11 @@ The authentication forms require passwords of at least six characters. Keep the 
 
 ## Profile and news sources
 
-- In **Profile**, choose from the fixed topic catalog and optionally add comma-separated labels. A story matches when it belongs to a selected topic and contains at least one label, if labels are set. Labels alone can match across topics. Use **View matching news** to preview the matches.
+- In **Profile**, choose from the fixed topic catalog and optionally add comma-separated labels. A story matches when it belongs to any selected topic or when its headline or summary contains any saved label. Use **View matching news** to preview the matches.
 - In **Administration → News sources**, use **Add source** to open the editor. Enter an approved HTTPS RSS, Atom or USGS URL and select one or more topics. Optional comma-separated keywords restrict each assignment. **Test source** reads the live payload without saving or importing. You can edit or delete existing sources and use **Run now** to import immediately. Deleting a source preserves existing articles.
 - BBC World, Business and Technology are seeded. Business supplies the default coverage for **Economy**, **Stock Market** and **Crypto**. For additional crypto coverage, assign `https://cointelegraph.com/rss` to **Crypto**. For earthquake reports, select **USGS earthquakes**, enter `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` and select **Natural Disasters**.
 - Each source's first successful import populates the feed silently. Later new matches appear under the notification bell. Articles are deduplicated by normalized URL and exact normalized headline on the same UTC publication date.
-- Hangfire runs enabled sources sequentially on startup and every 30 minutes by default. Sources can be paused individually. SQLite retains normalized article identities so reruns can skip duplicates.
+- Hangfire runs enabled sources sequentially on startup and every 30 minutes by default. Admins can change import and archive intervals in **Administration → Scheduled jobs**. Sources can be paused individually. SQLite retains normalized article identities so reruns can skip duplicates.
 - The daily archive job removes summaries and image URLs from articles older than seven days, excludes them from the active feed, and compacts SQLite when rows were archived. Saved likes and existing inbox entries keep their titles and original links.
 - Approve any additional feed domains in `News.AllowedHosts`. Set `News.Enabled` to false to stop automatic imports. Review permitted use for the feeds you enable.
 
@@ -62,23 +62,23 @@ Users can like articles in the feed and open **Liked posts** from the account me
 
 From `frontend/`, run `npm run lint` for Angular and TypeScript lint checks and `npm run format:check` for Prettier. Use `npm run format` to apply the formatting.
 
-## What the app will do
+## What the app does
 
-- Browse an English-language news feed by topic and set alerts using tags, keywords or exact phrases. Choose which eligible news sources a rule watches.
+- Browse an English-language news feed and set alert preferences using topics and custom labels.
 - Receive alerts in the app and through email or Slack. Email is the default external channel. Slack is available when an administrator has configured a destination.
-- Register with email, verify your address, reset your password and delete your account from your profile.
+- Register with email, verify your address, reset your password and archive your account from your profile. Archiving signs you out and stops access and notifications while retaining account data.
 
 The first demo focuses on RSS news. BBC World RSS and USGS were verified in a live import smoke check. Confirmation of permitted use is still pending for the BBC feeds. Price alerts are an optional extension.
 
 ## What administrators can configure
 
-- **News sources:** Add approved RSS, Atom and USGS feeds, assign them to topics and run imports on demand. Scheduled polling is configured on the backend.
-- **Users and rules:** Manage accounts and edit or pause saved alert rules, including their topics, tags, keywords, phrases and selected sources.
-- **Delivery channels:** Configure and test destinations for supported channels, and enable or disable a channel globally. The admin panel will show import and delivery outcomes.
+- **News sources:** Add approved RSS, Atom and USGS feeds, assign them to topics and run imports on demand. Adjust import and archive intervals under **Scheduled jobs**.
+- **Users:** Search accounts by email and manage their roles.
+- **Delivery channels:** Configure and test destinations for supported channels, and enable or disable a channel globally. The admin panel shows import and delivery outcomes.
 
 ## Architecture
 
-The mobile-friendly frontend will use Angular, NgRx and Tailwind CSS. An ASP.NET Core backend will use EF Core with SQLite for application data and Supabase Auth for accounts. A background service will import approved RSS feeds, deduplicate articles and check saved rules. The backend will save notifications before using SignalR to refresh connected clients. Email and Slack will use separate adapters behind a shared delivery interface.
+The mobile-friendly frontend uses Angular, NgRx and Tailwind CSS. The ASP.NET Core backend uses EF Core with SQLite for application data and Supabase Auth for accounts. Scheduled jobs import approved news feeds and check saved preferences. The backend persists notifications, and the inbox refreshes by polling. Email and Slack use separate adapters behind a shared delivery interface. SignalR, per-rule source selection and full admin editing of alert rules are deferred.
 
 The app can support more news providers by adding source adapters for their APIs. Rules can use the same topics, tags and keywords across eligible sources, and the matching logic can be extended with new conditions. Additional alert channels can be integrated through the shared delivery interface and configured in the admin panel once their adapters are available.
 
@@ -90,3 +90,5 @@ The app can support more news providers by adding source adapters for their APIs
 - [Repository instructions](AGENTS.md)
 - [Development log](docs/development-log.md)
 - [Windows CMD and integration setup](docs/local-setup.md)
+- [Reproducible demo results](docs/demo-verification.md)
+- [Live receipt and account archive verification](docs/account-archive-verification.md)
