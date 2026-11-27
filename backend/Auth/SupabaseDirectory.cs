@@ -28,7 +28,8 @@ public sealed class SupabaseDirectory(HttpClient client, IOptions<SupabaseSettin
             return Results.Ok(new
             {
                 page = current,
-                hasNext = result.Total is long total ? (long)current * size < total : result.Users.Length == size,
+                pageSize = size,
+                total = result.Total,
                 items = result.Users.Select(user => new { user.Id, user.Email,
                     role = user.Metadata?.AppRole == nameof(AppRole.Admin) ? AppRole.Admin : AppRole.User })
             });

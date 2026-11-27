@@ -53,10 +53,13 @@ public sealed class DeliveryEndpoints(FeedDb db, IEnumerable<INotificationSender
         {
             channels = senders.Select(sender => new
             {
-                sender.Channel, configured = sender.Configured && directory.IsConfigured,
+                channel = sender.Channel, configured = sender.Configured && directory.IsConfigured,
                 canConfigure = ProviderSettings.Fields(sender.Channel).Length > 0,
-                enabled = states.GetValueOrDefault(sender.Channel, sender.EnabledByDefault)
-            }),
+                enabled = states.GetValueOrDefault(sender.Channel, sender.EnabledByDefault), prepared = false
+            }).Concat(ProviderSettings.PreparedChannels.Select(channel => new
+            {
+                channel, configured = false, canConfigure = true, enabled = false, prepared = true
+            })),
             recent = await db.DeliveryAttempts.OrderByDescending(item => item.UpdatedAt)
                 .ThenBy(item => item.ArticleId).Take(30)
                 .Select(item => new { item.ArticleId, item.Channel, item.Status, item.UpdatedAt }).ToArrayAsync(token)

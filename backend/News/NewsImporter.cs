@@ -81,6 +81,8 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
 
             string canonical = CanonicalUrl(item.Url);
             ImportedArticle? known = await db.ImportedArticles.FindAsync([canonical], token);
+            if (known is not null)
+                await RefreshArticleAsync(known.ArticleId, item, token);
             if (known is null)
             {
                 string headline = System.Text.RegularExpressions.Regex.Replace(item.Title, @"\s+", " ").ToLowerInvariant();
@@ -123,6 +125,15 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
         return added;
     }
 
+    private Task<int> RefreshArticleAsync(int articleId, NewsItem item, CancellationToken token) =>
+        db.Articles.Where(article => article.Id == articleId && article.PublishedAt < item.PublishedAt)
+            .ExecuteUpdateAsync(update => update
+                .SetProperty(article => article.PublishedAt, item.PublishedAt)
+                .SetProperty(article => article.Title, item.Title)
+                .SetProperty(article => article.Description, item.Description)
+                .SetProperty(article => article.ImageUrl, article => item.ImageUrl ?? article.ImageUrl)
+                .SetProperty(article => article.Archived, false), token);
+
     private async Task<IReadOnlyList<NewsItem>> FetchAsync(string url, SourceKind kind, CancellationToken token)
     {
         using HttpResponseMessage response = await http.GetAsync(url, token);
@@ -144,8 +155,7 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
         WHERE a.Id = {articleId}
           AND (EXISTS (SELECT 1 FROM UserTopics ut JOIN ArticleTopics t ON t.Topic = ut.Topic
               WHERE ut.UserId = audience.UserId AND t.ArticleId = a.Id)
-            OR NOT EXISTS (SELECT 1 FROM UserTopics ut WHERE ut.UserId = audience.UserId))
-          AND (NOT EXISTS (SELECT 1 FROM UserLabels label WHERE label.UserId = audience.UserId)
+            OR EXISTS (SELECT 1 FROM UserTopics ut WHERE ut.UserId = audience.UserId AND ut.Topic = a.Topic)
             OR EXISTS (SELECT 1 FROM UserLabels label WHERE label.UserId = audience.UserId
                 AND (instr(lower(a.Title), label.Label) > 0 OR instr(lower(a.Description), label.Label) > 0)))
         ON CONFLICT (UserId, ArticleId) DO NOTHING

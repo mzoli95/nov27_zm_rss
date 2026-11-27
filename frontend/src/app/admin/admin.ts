@@ -3,14 +3,19 @@ import { AdminUsers } from './admin-users';
 import { NewsSources } from './news-sources';
 import { AdminChannels } from './admin-channels';
 
+import { MessageTemplates } from './message-templates';
+import { JobSchedules } from './job-schedules';
+
 enum AdminTab {
   Users = 'Users',
   Sources = 'News sources',
   Channels = 'Delivery channels',
+  Templates = 'Message templates',
+  Schedules = 'Scheduled jobs',
 }
 
 @Component({
-  imports: [AdminUsers, NewsSources, AdminChannels],
+  imports: [AdminUsers, NewsSources, AdminChannels, MessageTemplates, JobSchedules],
   template: `
     <h1 class="text-3xl font-bold">Administration</h1>
     <div class="mt-6 grid gap-5 md:grid-cols-[13rem_minmax(0,1fr)]">
@@ -42,6 +47,12 @@ enum AdminTab {
           @case (AdminTab.Channels) {
             <app-admin-channels />
           }
+          @case (AdminTab.Templates) {
+            <app-message-templates />
+          }
+          @case (AdminTab.Schedules) {
+            <app-job-schedules />
+          }
         }
       </div>
     </div>
@@ -54,6 +65,8 @@ export class Admin {
     AdminTab.Users,
     AdminTab.Sources,
     AdminTab.Channels,
+    AdminTab.Templates,
+    AdminTab.Schedules,
   ];
   protected select(tab: AdminTab): void {
     this.active.set(tab);

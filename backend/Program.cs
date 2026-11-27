@@ -20,9 +20,12 @@ IDataProtectionBuilder protection = builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, ".keys")));
 if (OperatingSystem.IsWindows()) protection.ProtectKeysWithDpapi();
 builder.Services.AddScoped<ProviderSettings>();
+builder.Services.AddScoped<MessageTemplateSettings>();
+builder.Services.AddScoped<DeliveryTest>();
 builder.Services.AddHangfire(configuration => configuration.UseInMemoryStorage());
 builder.Services.AddHangfireServer(options => options.WorkerCount = 1);
 builder.Services.AddScoped<NewsJobs>();
+builder.Services.AddScoped<NewsSchedules>();
 builder.Services.AddScoped<INotificationSender, EmailSender>();
 builder.Services.AddHttpClient<SlackSender>(client => client.Timeout = TimeSpan.FromSeconds(8))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
@@ -63,20 +66,14 @@ app.UseAuthorization();
     await database.Database.MigrateAsync();
     await NewsDefaults.InitializeAsync(database);
     if (app.Environment.IsDevelopment()) await DemoArticles.InitializeAsync(database);
+    NewsSchedules schedules = scope.ServiceProvider.GetRequiredService<NewsSchedules>();
+    schedules.Apply(await schedules.ReadAsync(CancellationToken.None));
 }
 
 NewsOptions news = app.Services.GetRequiredService<IOptions<NewsOptions>>().Value;
-IRecurringJobManager recurring = app.Services.GetRequiredService<IRecurringJobManager>();
 IBackgroundJobClient jobs = app.Services.GetRequiredService<IBackgroundJobClient>();
 if (news.Enabled)
-{
-    int minutes = news.PollingIntervalMinutes;
-    if (minutes < 5 || minutes > 60 || 60 % minutes != 0) minutes = 30;
-    string schedule = minutes == 60 ? "0 * * * *" : $"*/{minutes} * * * *";
-    recurring.AddOrUpdate<NewsJobs>("news-import", job => job.ImportAsync(CancellationToken.None), schedule);
     jobs.Enqueue<NewsJobs>(job => job.ImportAsync(CancellationToken.None));
-}
-recurring.AddOrUpdate<NewsJobs>("news-archive", job => job.ArchiveAsync(CancellationToken.None), "15 2 * * *");
 jobs.Enqueue<NewsJobs>(job => job.ArchiveAsync(CancellationToken.None));
 
 app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSettings> settings) =>
@@ -87,6 +84,10 @@ app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSetting
     })).AllowAnonymous();
 
 RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
+RouteGroupBuilder schedule = api.MapGroup("/admin/schedules").RequireAuthorization(nameof(AppRole.Admin));
+schedule.MapGet("", (NewsSchedules schedules, CancellationToken token) => schedules.ViewAsync(token));
+schedule.MapPut("", (ScheduleIntervals intervals, NewsSchedules schedules, CancellationToken token) =>
+    schedules.SaveAsync(intervals, token));
 api.MapGet("/feed", FeedEndpoints.Read);
 api.MapPut("/feed/{id:int}/like", FeedEndpoints.SetLike);
 api.MapGet("/profile/preferences", PreferencesEndpoints.Read);
@@ -96,9 +97,19 @@ api.MapGet("/profile/channels", (DeliveryEndpoints delivery, System.Security.Cla
 api.MapPut("/profile/channels", (ChannelPreferencesInput input, DeliveryEndpoints delivery,
     System.Security.Claims.ClaimsPrincipal actor, CancellationToken token) => delivery.SaveAsync(input, actor, token));
 RouteGroupBuilder channels = api.MapGroup("/admin/channels").RequireAuthorization(nameof(AppRole.Admin));
+RouteGroupBuilder templates = api.MapGroup("/admin/message-template").RequireAuthorization(nameof(AppRole.Admin));
+templates.MapGet("", (MessageTemplateSettings settings, CancellationToken token) => settings.ReadAsync(token));
+templates.MapPut("", (MessageTemplate template, MessageTemplateSettings settings, CancellationToken token) =>
+    settings.SaveAsync(template, token));
+templates.MapDelete("", async (MessageTemplateSettings settings, CancellationToken token) =>
+{
+    await settings.ResetAsync(token);
+    return Results.NoContent();
+});
 channels.MapGet("/", (DeliveryEndpoints delivery, CancellationToken token) => delivery.AdminAsync(token));
 channels.MapPut("/{channel}", (string channel, ChannelSettingsInput input, DeliveryEndpoints delivery,
     CancellationToken token) => delivery.SetChannelAsync(channel, input, token));
+channels.MapPost("/{channel}/test", DeliveryTest.SendAsync);
 channels.MapGet("/{channel}/config", (string channel, ProviderSettings settings) =>
     ProviderSettings.Fields(channel).Length == 0 ? Results.NotFound() : Results.Ok(settings.SafeView(channel)));
 channels.MapPut("/{channel}/config", (string channel, ProviderConfigInput input, ProviderSettings settings,
@@ -119,7 +130,8 @@ sources.MapPost("/{id:int}/run", async (int id, NewsImporter importer, Cancellat
     ImportResult result = await importer.RunAsync(id, token);
     return result.Error is null ? Results.Ok(result) : Results.BadRequest(new { message = result.Error });
 });
-api.MapGet("/admin/access", () => Results.NoContent()).RequireAuthorization(nameof(AppRole.Admin));
+api.MapGet("/admin/access", (System.Security.Claims.ClaimsPrincipal actor) =>
+    Results.Ok(new { isAdmin = actor.IsInRole(nameof(AppRole.Admin)) }));
 api.MapGet("/admin/users", (int? page, string? search, SupabaseDirectory directory, CancellationToken token) =>
     directory.ListAsync(page, search, token)).RequireAuthorization(nameof(AppRole.Admin));
 api.MapPut("/admin/users/{id:guid}/role",

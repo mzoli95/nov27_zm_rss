@@ -48,7 +48,7 @@ flowchart LR
 ```
 
 - Verify BBC World RSS as the initial live candidate by checking its HTTP response, stable identity fields and permitted use. If those checks fail, document the reason and select a permitted RSS source. Add other feeds through the same adapter after validation.
-- Default to one fetch per enabled RSS source every 30 minutes, shared by all topics and users. Persist settings and deduplicate by source and stable item identity. Seed the first successful import silently. Subsequent runs consider unseen items still present in the feed, including after a temporary failure. Match new items locally against active rules.
+- Default to one fetch per enabled RSS source every 30 minutes, shared by all topics and users. Persist settings and deduplicate by source and stable item identity. Seed the first successful import silently. Subsequent runs consider unseen items still present in the feed, including after a temporary failure. Match new items locally when any saved topic or any case-insensitive label matches the headline or summary. Use the same eligibility in the personalized feed.
 - Use normalized tables for accounts, privacy acknowledgements, topics, source mappings, articles, tags, rules, channel preferences, inbox items and delivery attempts. Use a unique constraint for each user, article, and destination or channel as appropriate so overlapping rules and repeated ingestion do not create duplicate notifications.
 - Store notifications and channel change history before signaling connected clients. On login or reconnect, the UI reloads the inbox and channel state from the API. Check the current channel state again immediately before delivery. Record the external provider result separately from the inbox status.
 - Use Supabase for identity and credential recovery, and SQLite for application data. Configure SMTP for auth emails and for app alerts. Keep provider credentials on the server. Use typed Angular HttpClient services for the application API. Define a shared notification sender interface with separate email and Slack adapters.
@@ -98,3 +98,7 @@ Validate the live payload and permitted use before enabling each feed.
 - [Angular releases](https://angular.dev/reference/releases)
 - [.NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core)
 - [Supabase SMTP setup](https://supabase.com/docs/guides/auth/auth-smtp)
+
+The admin message template supplies the shared subject and introduction. Email keeps its five-link layout. Slack renders the same copy in blocks. Teams, Discord and Telegram settings are prepared for future delivery adapters and remain unavailable to users until those adapters exist.
+
+Each delivery provider defines its own authentication, recipient addressing and message format. The admin interface supports configuration for known providers. Adding another provider requires defining its configuration fields and implementing a sender adapter. Runtime registration of providers with unknown configuration is outside the current scope.

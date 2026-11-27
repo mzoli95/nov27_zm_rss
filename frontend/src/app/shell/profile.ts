@@ -21,7 +21,7 @@ interface PreferenceFields {
     <section class="mt-6 rounded-2xl border border-line bg-white p-5 sm:p-7">
       <h2 class="text-xl font-semibold">Alert preferences</h2>
       <p class="mt-2 text-sm text-muted">
-        Choose topics and add labels to narrow matching headlines and summaries.
+        Articles match any selected topic or any label found in a headline or summary.
       </p>
       @if (state().error) {
         <p class="mt-4 text-red-700" role="alert">{{ state().error }}</p>

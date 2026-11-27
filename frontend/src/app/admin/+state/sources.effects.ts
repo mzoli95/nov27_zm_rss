@@ -59,7 +59,14 @@ export const manageSources = createEffect(
               .post<{ added: number }>(path + '/' + action.id + '/run', {})
               .pipe(
                 switchMap((result) =>
-                  fetchPage(http, action.page, 'New items imported: ' + result.added + '.', false),
+                  fetchPage(
+                    http,
+                    action.page,
+                    result.added === 0
+                      ? 'Import completed. No new articles to add.'
+                      : `Import completed. ${result.added} new article${result.added === 1 ? '' : 's'} added.`,
+                    false,
+                  ),
                 ),
               );
             break;

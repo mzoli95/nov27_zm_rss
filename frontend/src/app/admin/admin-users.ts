@@ -1,5 +1,6 @@
 import { Component, Signal, WritableSignal, inject, signal } from '@angular/core';
 import { FieldTree, FormField, form, maxLength } from '@angular/forms/signals';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { Store } from '@ngrx/store';
 import { AppRole, Auth } from '../auth/auth';
 import { AdminUser, adminActions } from './+state/admin.actions';
@@ -12,7 +13,7 @@ interface SearchFields {
 
 @Component({
   selector: 'app-admin-users',
-  imports: [FormField],
+  imports: [FormField, MatPaginatorModule],
   template: ` <section class="rounded-2xl border border-line bg-white p-5 sm:p-7">
     <h2 class="text-xl font-semibold">Users</h2>
     <form class="mt-4 flex flex-wrap items-end gap-3" (submit)="search($event)">
@@ -55,24 +56,15 @@ interface SearchFields {
     @if (state().loading) {
       <p role="status">Loading users…</p>
     }
-    <nav class="flex flex-wrap items-center gap-3" aria-label="User pages">
-      <button
-        type="button"
-        class="rounded-md border border-line px-3 py-1.5"
-        [disabled]="state().loading || state().users.page === 1"
-        (click)="load(state().users.page - 1)"
-      >
-        Previous
-      </button>
-      <span class="text-sm text-muted">Page {{ state().users.page }}</span>
-      <button
-        type="button"
-        class="rounded-md border border-line px-3 py-1.5"
-        [disabled]="state().loading || !state().users.hasNext"
-        (click)="load(state().users.page + 1)"
-      >
-        Next
-      </button>
+    <nav aria-label="User pages">
+      <mat-paginator
+        [length]="userCount()"
+        [pageSize]="state().users.pageSize"
+        [pageIndex]="state().users.page - 1"
+        [hidePageSize]="true"
+        [disabled]="state().loading || state().saving"
+        (page)="load($event.pageIndex + 1)"
+      />
       @if (state().error) {
         <button class="text-primary underline" type="button" (click)="load(state().users.page)">
           Retry
@@ -91,6 +83,10 @@ export class AdminUsers {
     maxLength(path.email, 200),
   );
   private activeSearch: string = '';
+  protected userCount(): number {
+    const { total, page, pageSize, items } = this.state().users;
+    return total ?? (page - 1) * pageSize + items.length + Number(items.length === pageSize);
+  }
   constructor() {
     this.load(1);
   }

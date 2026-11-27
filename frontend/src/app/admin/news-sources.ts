@@ -10,6 +10,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { FieldTree, FormField, form, maxLength, required } from '@angular/forms/signals';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Store } from '@ngrx/store';
 import {
   NewsSource,
@@ -26,7 +28,7 @@ const empty: SourceFields = { name: '', url: '', kind: SourceKind.Rss };
 
 @Component({
   selector: 'app-news-sources',
-  imports: [DatePipe, FormField],
+  imports: [DatePipe, FormField, MatPaginatorModule, MatTooltipModule],
   templateUrl: './news-sources.html',
 })
 export class NewsSources {

@@ -9,7 +9,8 @@ export interface AdminUser {
 export interface UserPage {
   items: AdminUser[];
   page: number;
-  hasNext: boolean;
+  pageSize: number;
+  total: number | null;
 }
 export const adminActions = createActionGroup({
   source: 'Admin users',

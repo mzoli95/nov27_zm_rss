@@ -10,6 +10,7 @@ export interface ChannelSetting {
   configured: boolean;
   enabled: boolean;
   canConfigure: boolean;
+  prepared: boolean;
 }
 export interface DeliveryOutcome {
   articleId: number;

@@ -78,7 +78,19 @@ interface ProviderConfig {
         <p role="alert" class="text-red-700 sm:col-span-2">{{ error() }}</p>
       }
       <div class="flex gap-3 sm:col-span-2">
-        <button class="primary" [disabled]="!config() || saving()">Save provider settings</button>
+        <button
+          class="primary inline-flex items-center gap-2"
+          [disabled]="!config() || saving()"
+          [attr.aria-busy]="saving()"
+        >
+          @if (saving()) {
+            <span
+              class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"
+              aria-hidden="true"
+            ></span>
+          }
+          {{ saving() ? 'Saving…' : 'Save provider settings' }}
+        </button>
         <button
           type="button"
           (click)="cancelled.emit()"

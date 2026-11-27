@@ -14,7 +14,10 @@ public sealed record ChannelPreferencesInput(string[] EnabledChannels);
 public sealed record DeliveryArticle(string Title, string Url);
 public sealed record DeliveryLabel(string Label, int Matches);
 public sealed record DeliveryMessage(string Email, IReadOnlyList<DeliveryArticle> Articles,
-    IReadOnlyList<DeliveryLabel>? Labels = null, int? TotalArticles = null);
+    IReadOnlyList<DeliveryLabel>? Labels = null, int? TotalArticles = null, MessageTemplate? Template = null)
+{
+    public MessageTemplate Content => Template ?? MessageTemplate.Default;
+}
 public sealed class DeliveryAttempt
 {
     public Guid UserId { get; init; }

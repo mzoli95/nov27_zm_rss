@@ -46,7 +46,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    canActivate: [signedIn, adminOnly],
+    canActivate: [adminOnly],
     providers: [
       provideState('admin', adminReducer),
       provideState('sources', sourcesReducer),

@@ -13,7 +13,7 @@ const initial: AdminState = {
   loading: false,
   message: '',
   error: '',
-  users: { items: [], page: 1, hasNext: false },
+  users: { items: [], page: 1, pageSize: 20, total: 0 },
 };
 export const adminReducer = createReducer(
   initial,

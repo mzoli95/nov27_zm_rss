@@ -5,6 +5,7 @@ export interface SourcesState {
   topics: string[];
   sources: SourcePage;
   busy: boolean;
+  runningSourceId: number | null;
   message: string;
   error: string;
   saved: boolean;
@@ -13,6 +14,7 @@ const initial: SourcesState = {
   topics: [],
   sources: { items: [], page: 1, total: 0, pageSize: 10 },
   busy: false,
+  runningSourceId: null,
   message: '',
   error: '',
   saved: false,
@@ -29,16 +31,24 @@ export const sourcesReducer = createReducer(
   on(
     sourcesActions.load,
     sourcesActions.save,
-    sourcesActions.run,
     sourcesActions.setAvailability,
     sourcesActions.test,
     sourcesActions.delete,
     (state): SourcesState => ({ ...state, busy: true, message: '', error: '', saved: false }),
   ),
+  on(sourcesActions.run, (state, { id }): SourcesState => ({
+    ...state,
+    busy: true,
+    runningSourceId: id,
+    message: '',
+    error: '',
+    saved: false,
+  })),
   on(sourcesActions.loaded, (_, { topics, sources, message, saved }): SourcesState => ({
     topics,
     sources,
     busy: false,
+    runningSourceId: null,
     message,
     error: '',
     saved,
@@ -51,6 +61,7 @@ export const sourcesReducer = createReducer(
   on(sourcesActions.failed, (state, { message }): SourcesState => ({
     ...state,
     busy: false,
+    runningSourceId: null,
     error: message,
   })),
 );

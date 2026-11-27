@@ -141,3 +141,44 @@ This is a retrospective English summary of the planning conversation, followed b
 - **User request:** Limit emails to five unique article links, show top matching labels, keep all matches in the app, and explain where Slack app setup starts from the workspace screen.
 - **Assistant response:** Limited each email window to the five newest distinct links. Added up to five labels ranked by match count across the full window. Kept inbox entries and marked emails' remaining articles as omitted in the delivery log. Expanded the Slack setup steps.
 - **Verification:** A SQLite fixture with 55 matches and a repeated canonical URL produced one email with five distinct links, five ranked labels, and all 55 in-app entries retained. Rerunning did not resend. The first label aggregation was rejected by EF Core; a SQL-translatable projection passed the rerun. Live provider credentials were still absent.
+
+### Independent topic and label matching
+
+The user requested topic-based alerts even when custom labels are present, plus a shared editable message template and configuration for additional channels. The AI aligned the personalized feed and alert creation with independent topic and label matches. Runtime verification was blocked by the local command runner.
+The AI reused the blue email layout and added a shared admin template editor with preview and reset. Teams, Discord and Telegram provider credentials can be staged in the admin panel. Email and Slack are the active adapters.
+
+### Admin test delivery
+
+The user requested a test-send action for the configured channel. The AI added an admin-only action that uses the saved template and sends a sample to the acting admin's verified email or matching Slack account. Angular and .NET builds passed. An unauthenticated request returned HTTP 401 through the local proxy. Live delivery was not triggered during verification.
+
+### Admin pagination and source controls
+
+The user requested Material pagination, a green or red source switch, and tooltip-labeled source actions. The AI applied Material pagination to the user and source lists and used the existing Bootstrap icon font for editing, running and deleting sources. The user also asked to document the decision to stage only known providers. New integrations require a defined configuration and delivery adapter.
+
+### Admin startup and Slack test connection
+
+The user reported an initial unauthorized admin access check and a refused connection during a Slack test. The AI made both admin checks wait for session initialization and distinguish role discovery from admin authorization. It added a clear message for browser connection failures. The local proxy reached the protected Slack test endpoint, and the machine reached the Slack API over HTTPS. Live delivery was not triggered.
+
+### Delivery feedback
+
+The user requested a loading indicator and a discreet result notification for sending. The AI added a spinner to the active test button and a bottom-right notification for accepted, failed and uncertain outcomes. Provider configuration also shows a saving indicator and a success notification.
+
+### Slack test diagnostics
+
+The user reported that a saved template still produced a failed Slack test. The AI traced the email lookup, direct-message opening and posting steps. The admin test now returns stage-specific troubleshooting hints without exposing provider credentials or recipient details. Both builds passed and the local API was restarted. Live Slack delivery was not exercised.
+
+The user then showed that the Slack test reached chat.postMessage. The AI exposed the Slack error code in the admin diagnostic and added guidance for a disabled Messages Tab and workspace posting restrictions.
+
+### Sign-up confirmation view
+
+The user requested a dedicated confirmation screen after sign-up. The AI replaced the form with a confirmation message and a Back to home action when Supabase requires email verification. The destination remains protected by the session guard.
+
+### Manual source import feedback
+
+The user reported that manual import appeared to do nothing. The screenshot showed a successful run with zero newly added articles. The AI added a source-level progress indicator and a clear successful completion message for an empty import.
+
+The user clarified that BBC showed newer content than the app. The AI compared the three live RSS feeds with local SQLite and found that a known URL had a newer publication timestamp in RSS. The importer now updates the existing article when the same URL has a newer timestamp, without creating a second article.
+
+### Scheduled job intervals
+
+The user asked to configure how often the scheduled jobs run. The AI added a Scheduled jobs admin tab with separate interval choices for importing and archiving. Saved choices persist in SQLite and update Hangfire immediately.

@@ -33,7 +33,8 @@ public sealed class DeliveryWorker(IServiceScopeFactory scopes, ILogger<Delivery
 }
 
 public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnumerable<INotificationSender> senders,
-    ILogger<DeliveryBatch> logger)
+    ILogger<DeliveryBatch> logger,
+    MessageTemplateSettings templates)
 {
     private static readonly TimeSpan DigestWindow = TimeSpan.FromMinutes(30);
     private const int MaxArticlesPerMessage = 40;
@@ -44,6 +45,7 @@ public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnume
     public async Task RunAsync(CancellationToken token)
     {
         DateTime cutoff = WindowStart(DateTime.UtcNow);
+        MessageTemplate? template = null;
         for (int index = 0; index < 10; index++)
         {
             DeliveryAttempt? oldest = await db.DeliveryAttempts.AsNoTracking()
@@ -82,7 +84,8 @@ public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnume
             try
             {
                 DeliveryArticle[] articles = selected.Select(item => item.Article).ToArray();
-                status = await SendAsync(oldest, new DeliveryMessage("", articles, labels, total), token);
+                template ??= await templates.ReadAsync(token);
+                status = await SendAsync(oldest, new DeliveryMessage("", articles, labels, total, template), token);
             }
             catch (Exception error) when (!token.IsCancellationRequested)
             {

@@ -23,10 +23,15 @@ public sealed class ProviderSettings(FeedDb db, IDataProtectionProvider protecti
     ];
     private static readonly ProviderField[] slackFields = [new("BotToken", "Slack bot token", "password")];
 
+    public static IReadOnlyList<string> PreparedChannels { get; } = ["Teams", "Discord", "Telegram"];
+
     public static ProviderField[] Fields(string channel) => channel switch
     {
         DeliveryChannels.Email => emailFields,
         DeliveryChannels.Slack => slackFields,
+        "Teams" => [new("TenantId", "Tenant ID", "text"), new("AppId", "App ID", "text"),
+            new("AppSecret", "App secret", "password")],
+        "Discord" or "Telegram" => [new("BotToken", "Bot token", "password")],
         _ => []
     };
 
@@ -133,6 +138,12 @@ public sealed class ProviderSettings(FeedDb db, IDataProtectionProvider protecti
 
     private static string? Validate(string channel, Dictionary<string, string> values)
     {
+        if (PreparedChannels.Contains(channel))
+            return (channel == "Teams"
+                ? Guid.TryParse(Value(values, "TenantId"), out _) &&
+                    Guid.TryParse(Value(values, "AppId"), out _) && Value(values, "AppSecret").Length > 0
+                : Value(values, "BotToken").Length > 0)
+                ? null : "Enter all required provider credentials.";
         if (channel == DeliveryChannels.Slack)
             return Value(values, "BotToken").StartsWith("xoxb-", StringComparison.Ordinal) ? null : "Enter a Slack bot token beginning with xoxb-.";
         if (Uri.CheckHostName(Value(values, "Host")) != UriHostNameType.Dns ||

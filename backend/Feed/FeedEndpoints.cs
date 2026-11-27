@@ -41,10 +41,10 @@ public static class FeedEndpoints
             IQueryable<string> topics = db.UserTopics.Where(row => row.UserId == userId).Select(row => row.Topic);
             IQueryable<string> labels = db.UserLabels.Where(row => row.UserId == userId).Select(row => row.Label);
             articles = articles.Where(article =>
-                (topics.Contains(article.Topic) || db.ArticleTopics.Any(link => link.ArticleId == article.Id && topics.Contains(link.Topic)) ||
-                 (!topics.Any() && labels.Any())) &&
-                (!labels.Any() || labels.Any(label => article.Title.ToLower().Contains(label) ||
-                    article.Description.ToLower().Contains(label))));
+                topics.Contains(article.Topic) ||
+                db.ArticleTopics.Any(link => link.ArticleId == article.Id && topics.Contains(link.Topic)) ||
+                labels.Any(label => article.Title.ToLower().Contains(label) ||
+                    article.Description.ToLower().Contains(label)));
         }
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
