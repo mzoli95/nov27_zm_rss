@@ -24,6 +24,9 @@
   @for (source of state().sources.items; track source.id) {
     <article class="mt-4 rounded-lg border border-line p-4">
       <h3 class="font-semibold">{{ source.name }}</h3>
+      <p class="text-sm" [class.text-primary]="source.enabled" [class.text-muted]="!source.enabled">
+        {{ source.enabled ? 'Enabled' : 'Disabled' }}
+      </p>
       <p class="break-all text-sm text-muted">{{ source.url }}</p>
       <ul class="my-2 space-y-1 text-sm">
         @for (mapping of source.topics; track mapping.topic) {
@@ -53,10 +56,18 @@
         <button
           type="button"
           class="rounded border border-line px-3 py-1.5 text-primary"
-          [disabled]="state().busy"
+          [disabled]="state().busy || !source.enabled"
           (click)="run(source.id)"
         >
           Run now
+        </button>
+        <button
+          type="button"
+          class="rounded border border-line px-3 py-1.5 text-primary"
+          [disabled]="state().busy"
+          (click)="toggle(source)"
+        >
+          {{ source.enabled ? 'Disable' : 'Enable' }}
         </button>
         <button
           type="button"

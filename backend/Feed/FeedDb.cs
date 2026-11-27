@@ -7,7 +7,10 @@ namespace WorldEventAlerts.Feed;
 
 public sealed record Article(
     int Id, string Title, string Description, string Topic, string Source,
-    string? ImageUrl, string Url, DateTime PublishedAt);
+    string? ImageUrl, string Url, DateTime PublishedAt)
+{
+    public bool Archived { get; init; }
+}
 
 public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options)
 {
@@ -23,6 +26,7 @@ public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options
     public DbSet<ChannelPreference> ChannelPreferences => Set<ChannelPreference>();
     public DbSet<ChannelState> ChannelStates => Set<ChannelState>();
     public DbSet<DeliveryAttempt> DeliveryAttempts => Set<DeliveryAttempt>();
+    public DbSet<StoredChannelConfig> StoredChannelConfigs => Set<StoredChannelConfig>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +39,7 @@ public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options
         modelBuilder.Entity<DeliveryAttempt>().HasKey(row => new { row.UserId, row.ArticleId, row.Channel });
         modelBuilder.Entity<DeliveryAttempt>().HasOne<Article>().WithMany().HasForeignKey(row => row.ArticleId);
         modelBuilder.Entity<DeliveryAttempt>().HasIndex(row => new { row.Status, row.UpdatedAt });
+        modelBuilder.Entity<StoredChannelConfig>().HasKey(row => row.Channel);
     }
 
     internal static void ConfigureNews(ModelBuilder model)

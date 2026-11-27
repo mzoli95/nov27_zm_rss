@@ -108,6 +108,16 @@ export class NewsSources {
     this.store.dispatch(sourcesActions.run({ id, page: this.state().sources.page }));
   }
 
+  protected toggle(source: NewsSource): void {
+    this.store.dispatch(
+      sourcesActions.setAvailability({
+        id: source.id,
+        enabled: !source.enabled,
+        page: this.state().sources.page,
+      }),
+    );
+  }
+
   protected remove(source: NewsSource): void {
     if (window.confirm('Delete ' + source.name + '? Previously imported articles will remain.'))
       this.store.dispatch(

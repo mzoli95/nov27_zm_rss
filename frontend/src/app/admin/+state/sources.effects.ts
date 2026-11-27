@@ -35,6 +35,7 @@ export const manageSources = createEffect(
         sourcesActions.load,
         sourcesActions.save,
         sourcesActions.run,
+        sourcesActions.setAvailability,
         sourcesActions.test,
         sourcesActions.delete,
       ),
@@ -59,6 +60,20 @@ export const manageSources = createEffect(
               .pipe(
                 switchMap((result) =>
                   fetchPage(http, action.page, 'New items imported: ' + result.added + '.', false),
+                ),
+              );
+            break;
+          case sourcesActions.setAvailability.type:
+            work = http
+              .put<void>(path + '/' + action.id + '/availability', { enabled: action.enabled })
+              .pipe(
+                switchMap(() =>
+                  fetchPage(
+                    http,
+                    action.page,
+                    action.enabled ? 'Source enabled.' : 'Source disabled.',
+                    false,
+                  ),
                 ),
               );
             break;

@@ -15,6 +15,7 @@ export interface SourceInput {
   topics: SourceTopic[];
 }
 export interface NewsSource extends SourceInput {
+  enabled: boolean;
   id: number;
   lastSuccess: string | null;
   status: string | null;
@@ -35,6 +36,7 @@ export const sourcesActions = createActionGroup({
     Tested: props<{ count: number }>(),
     Delete: props<{ id: number; page: number }>(),
     Run: props<{ id: number; page: number }>(),
+    'Set availability': props<{ id: number; enabled: boolean; page: number }>(),
     Loaded: props<{ topics: string[]; sources: SourcePage; message: string; saved: boolean }>(),
     Failed: props<{ message: string }>(),
   },

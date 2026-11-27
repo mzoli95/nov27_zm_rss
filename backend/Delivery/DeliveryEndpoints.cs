@@ -34,8 +34,9 @@ public sealed class DeliveryEndpoints(FeedDb db, IEnumerable<INotificationSender
             await db.Database.BeginTransactionAsync(token);
         foreach (INotificationSender sender in senders)
         {
-            if (!sender.Configured || !directory.IsConfigured || !states.GetValueOrDefault(sender.Channel, sender.EnabledByDefault)) continue;
             bool enabled = input.EnabledChannels.Contains(sender.Channel);
+            if (enabled && (!sender.Configured || !directory.IsConfigured ||
+                !states.GetValueOrDefault(sender.Channel, sender.EnabledByDefault))) continue;
             await db.Database.ExecuteSqlAsync($"""
                 INSERT INTO ChannelPreferences (UserId, Channel, Enabled) VALUES ({userId}, {sender.Channel}, {enabled})
                 ON CONFLICT (UserId, Channel) DO UPDATE SET Enabled = excluded.Enabled
@@ -53,6 +54,7 @@ public sealed class DeliveryEndpoints(FeedDb db, IEnumerable<INotificationSender
             channels = senders.Select(sender => new
             {
                 sender.Channel, configured = sender.Configured && directory.IsConfigured,
+                canConfigure = ProviderSettings.Fields(sender.Channel).Length > 0,
                 enabled = states.GetValueOrDefault(sender.Channel, sender.EnabledByDefault)
             }),
             recent = await db.DeliveryAttempts.OrderByDescending(item => item.UpdatedAt)

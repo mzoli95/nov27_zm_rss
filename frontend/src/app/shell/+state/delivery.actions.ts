@@ -9,6 +9,7 @@ export interface ChannelSetting {
   channel: string;
   configured: boolean;
   enabled: boolean;
+  canConfigure: boolean;
 }
 export interface DeliveryOutcome {
   articleId: number;

@@ -8,7 +8,7 @@ public static class DemoArticles
     {
         if (await database.Articles.AnyAsync())
         {
-            await database.Articles.Where(article => article.Source == "Demo fixture" && article.ImageUrl == null &&
+            await database.Articles.Where(article => article.Source == "Demo fixture" && article.ImageUrl == null && !article.Archived &&
                     (article.Topic == "General News" || article.Topic == "Crypto" || article.Topic == "Science & Technology"))
                 .ExecuteUpdateAsync(update => update.SetProperty(article => article.ImageUrl, article =>
                     article.Topic == "General News" ? "/demo/world.jpg" :

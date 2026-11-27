@@ -14,7 +14,7 @@ public static class SourceEndpoints
             .OrderBy(source => source.Name).ThenBy(source => source.Id).Skip((current - 1) * pageSize)
             .Take(pageSize).Select(source => new
         {
-            source.Id, source.Name, source.Url, kind = source.Kind.ToString(), source.LastSuccess, source.Status,
+            source.Id, source.Name, source.Url, kind = source.Kind.ToString(), source.LastSuccess, source.Status, source.Enabled,
             topics = db.SourceTopics.Where(link => link.SourceId == source.Id).OrderBy(link => link.Topic)
                 .Select(link => new { link.Topic, link.Keywords }).ToArray()
         }).ToListAsync(token) });
@@ -51,6 +51,11 @@ public static class SourceEndpoints
 
     public static async Task<IResult> Delete(int id, FeedDb db, CancellationToken token) =>
         await db.NewsSources.Where(source => source.Id == id).ExecuteDeleteAsync(token) == 0
+            ? Results.NotFound() : Results.NoContent();
+
+    public static async Task<IResult> SetAvailability(int id, SourceAvailability input, FeedDb db, CancellationToken token) =>
+        await db.NewsSources.Where(source => source.Id == id)
+            .ExecuteUpdateAsync(update => update.SetProperty(source => source.Enabled, input.Enabled), token) == 0
             ? Results.NotFound() : Results.NoContent();
 
     public static async Task<IResult> Create(SourceUpdate input, FeedDb db, SourcePolicy policy, CancellationToken token)

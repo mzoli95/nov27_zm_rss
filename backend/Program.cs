@@ -5,6 +5,9 @@ using WorldEventAlerts.Feed;
 using WorldEventAlerts.News;
 using WorldEventAlerts.Delivery;
 using System.Text.Json.Serialization;
+using Hangfire;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -12,6 +15,14 @@ if (builder.Environment.IsDevelopment())
 builder.Services.Configure<SupabaseSettings>(builder.Configuration.GetSection("Supabase"));
 builder.Services.Configure<NewsOptions>(builder.Configuration.GetSection("News"));
 builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection("Notifications"));
+IDataProtectionBuilder protection = builder.Services.AddDataProtection()
+    .SetApplicationName("WorldEventAlerts")
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, ".keys")));
+if (OperatingSystem.IsWindows()) protection.ProtectKeysWithDpapi();
+builder.Services.AddScoped<ProviderSettings>();
+builder.Services.AddHangfire(configuration => configuration.UseInMemoryStorage());
+builder.Services.AddHangfireServer(options => options.WorkerCount = 1);
+builder.Services.AddScoped<NewsJobs>();
 builder.Services.AddScoped<INotificationSender, EmailSender>();
 builder.Services.AddHttpClient<SlackSender>(client => client.Timeout = TimeSpan.FromSeconds(8))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
@@ -29,7 +40,6 @@ builder.Services.AddHttpClient<NewsImporter>(client =>
     client.Timeout = TimeSpan.FromSeconds(12);
     client.MaxResponseContentBufferSize = 2_000_000;
 }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
-builder.Services.AddHostedService<NewsWorker>();
 builder.Services.AddHttpClient<SupabaseIdentity>(client => client.Timeout = TimeSpan.FromSeconds(8));
 builder.Services.AddHttpClient<RoleAdministration>(client => client.Timeout = TimeSpan.FromSeconds(8))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
@@ -55,6 +65,20 @@ app.UseAuthorization();
     if (app.Environment.IsDevelopment()) await DemoArticles.InitializeAsync(database);
 }
 
+NewsOptions news = app.Services.GetRequiredService<IOptions<NewsOptions>>().Value;
+IRecurringJobManager recurring = app.Services.GetRequiredService<IRecurringJobManager>();
+IBackgroundJobClient jobs = app.Services.GetRequiredService<IBackgroundJobClient>();
+if (news.Enabled)
+{
+    int minutes = news.PollingIntervalMinutes;
+    if (minutes < 5 || minutes > 60 || 60 % minutes != 0) minutes = 30;
+    string schedule = minutes == 60 ? "0 * * * *" : $"*/{minutes} * * * *";
+    recurring.AddOrUpdate<NewsJobs>("news-import", job => job.ImportAsync(CancellationToken.None), schedule);
+    jobs.Enqueue<NewsJobs>(job => job.ImportAsync(CancellationToken.None));
+}
+recurring.AddOrUpdate<NewsJobs>("news-archive", job => job.ArchiveAsync(CancellationToken.None), "15 2 * * *");
+jobs.Enqueue<NewsJobs>(job => job.ArchiveAsync(CancellationToken.None));
+
 app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSettings> settings) =>
     Results.Ok(new
     {
@@ -75,6 +99,10 @@ RouteGroupBuilder channels = api.MapGroup("/admin/channels").RequireAuthorizatio
 channels.MapGet("/", (DeliveryEndpoints delivery, CancellationToken token) => delivery.AdminAsync(token));
 channels.MapPut("/{channel}", (string channel, ChannelSettingsInput input, DeliveryEndpoints delivery,
     CancellationToken token) => delivery.SetChannelAsync(channel, input, token));
+channels.MapGet("/{channel}/config", (string channel, ProviderSettings settings) =>
+    ProviderSettings.Fields(channel).Length == 0 ? Results.NotFound() : Results.Ok(settings.SafeView(channel)));
+channels.MapPut("/{channel}/config", (string channel, ProviderConfigInput input, ProviderSettings settings,
+    CancellationToken token) => settings.SaveAsync(channel, input, token));
 api.MapGet("/topics", () => NewsTopics.All);
 api.MapGet("/notifications", NotificationsEndpoints.Read);
 api.MapPost("/notifications/read", NotificationsEndpoints.MarkRead);
@@ -83,6 +111,7 @@ sources.MapGet("/", SourceEndpoints.Read);
 sources.MapPost("/", SourceEndpoints.Create);
 sources.MapPut("/{id:int}", SourceEndpoints.Update);
 sources.MapDelete("/{id:int}", SourceEndpoints.Delete);
+sources.MapPut("/{id:int}/availability", SourceEndpoints.SetAvailability);
 sources.MapPost("/test", (SourceUpdate input, NewsImporter importer, CancellationToken token) =>
     importer.TestAsync(input, token));
 sources.MapPost("/{id:int}/run", async (int id, NewsImporter importer, CancellationToken token) =>

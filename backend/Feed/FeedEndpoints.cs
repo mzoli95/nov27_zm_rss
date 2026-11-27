@@ -10,7 +10,7 @@ public sealed class FeedQuery
 {
     [FromQuery] public string? Topic { get; init; }
     [FromQuery] public string? Search { get; init; }
-    [FromQuery] public FeedSort? Sort { get; init; }
+    [FromQuery] public string? Sort { get; init; }
     [FromQuery] public int? Cursor { get; init; }
     [FromQuery] public bool? Liked { get; init; }
     [FromQuery] public bool? Preferred { get; init; }
@@ -28,6 +28,11 @@ public static class FeedEndpoints
         IQueryable<Article> articles = db.Articles.AsNoTracking();
         if (query.Liked == true)
             articles = articles.Where(article => likes.Any(like => like.ArticleId == article.Id));
+        else
+        {
+            DateTime cutoff = DateTime.UtcNow.AddDays(-7);
+            articles = articles.Where(article => !article.Archived && article.PublishedAt >= cutoff);
+        }
         if (!string.IsNullOrWhiteSpace(query.Topic))
             articles = articles.Where(article => article.Topic == query.Topic ||
                 db.ArticleTopics.Any(link => link.ArticleId == article.Id && link.Topic == query.Topic));
@@ -47,7 +52,10 @@ public static class FeedEndpoints
             articles = articles.Where(article => article.Title.ToLower().Contains(search));
         }
 
-        bool oldest = query.Sort == FeedSort.Oldest;
+        bool oldest = string.Equals(query.Sort, nameof(FeedSort.Oldest), StringComparison.OrdinalIgnoreCase);
+        if (!oldest && !string.IsNullOrEmpty(query.Sort) &&
+            !string.Equals(query.Sort, nameof(FeedSort.Newest), StringComparison.OrdinalIgnoreCase))
+            return Results.BadRequest(new { message = "Choose newest or oldest." });
         if (query.Cursor is int cursor)
         {
             DateTime? date = await db.Articles.Where(article => article.Id == cursor)

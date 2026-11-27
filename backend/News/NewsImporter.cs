@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using WorldEventAlerts.Feed;
 using WorldEventAlerts.Delivery;
 
@@ -37,6 +36,7 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
         {
             NewsSource? source = await db.NewsSources.FindAsync([id], token);
             if (source is null) return new ImportResult(0, "Source not found.");
+            if (!source.Enabled) return new ImportResult(0, "This source is disabled.");
 
             try
             {
@@ -109,9 +109,9 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
                     ON CONFLICT (ArticleId, Topic) DO NOTHING
                     """, token) > 0;
             if (!inserted && item.ImageUrl is not null)
-                await db.Articles.Where(row => row.Id == known.ArticleId && row.ImageUrl == null)
+                await db.Articles.Where(row => row.Id == known.ArticleId && row.ImageUrl == null && !row.Archived)
                     .ExecuteUpdateAsync(update => update.SetProperty(row => row.ImageUrl, item.ImageUrl), token);
-            if (changedTopics && source.LastSuccess is not null)
+            if (changedTopics && source.LastSuccess is not null && item.PublishedAt >= DateTime.UtcNow.AddDays(-7))
             {
                 DateTime created = DateTime.UtcNow;
                 await CreateAlertsAsync(known.ArticleId, created, token);
@@ -180,29 +180,5 @@ public sealed class NewsImporter(FeedDb db, HttpClient http, SourcePolicy policy
                 !part.StartsWith("gclid=", StringComparison.OrdinalIgnoreCase))
             .Order(StringComparer.Ordinal));
         return builder.Uri.AbsoluteUri;
-    }
-}
-
-public sealed class NewsWorker(IServiceScopeFactory scopes, IOptions<NewsOptions> settings,
-    ILogger<NewsWorker> logger) : BackgroundService
-{
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        if (!settings.Value.Enabled) return;
-        using PeriodicTimer timer = new(TimeSpan.FromMinutes(Math.Clamp(settings.Value.PollingIntervalMinutes, 5, 1440)));
-        do
-        {
-            await using AsyncServiceScope scope = scopes.CreateAsyncScope();
-            FeedDb db = scope.ServiceProvider.GetRequiredService<FeedDb>();
-            int[] sources = await db.NewsSources.Select(source => source.Id).ToArrayAsync(stoppingToken);
-            NewsImporter importer = scope.ServiceProvider.GetRequiredService<NewsImporter>();
-            foreach (int id in sources)
-            {
-                ImportResult result = await importer.RunAsync(id, stoppingToken);
-                if (result.Error is not null) logger.LogWarning("Import failed for source {SourceId}", id);
-                db.ChangeTracker.Clear();
-            }
-        }
-        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 }

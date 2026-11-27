@@ -1,13 +1,12 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
 
 namespace WorldEventAlerts.Delivery;
 
-public sealed class SlackSender(HttpClient http, IOptions<NotificationOptions> options) : INotificationSender
+public sealed class SlackSender(HttpClient http, ProviderSettings options) : INotificationSender
 {
-    private SlackOptions Settings => options.Value.Slack;
+    private SlackOptions Settings => options.Slack;
     public string Channel => DeliveryChannels.Slack;
     public bool Configured => Settings.BotToken.StartsWith("xoxb-", StringComparison.Ordinal);
     public bool EnabledByDefault => Settings.Enabled;

@@ -51,12 +51,12 @@ npx --yes --package=node@24.15.0 -- node node_modules\@angular\cli\bin\ng.js ser
 
 Supabase sends signup confirmation and password-reset emails. Configure its custom SMTP in the Supabase dashboard when sending to users outside the project team. [Supabase custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp)
 
-Copy the relevant sections of the JSON example into the ignored backend local settings and restart the backend. The user directory and both alert adapters need the backend-only `Supabase.SecretKey` to read the current verified account email.
+The user directory and both alert adapters need the backend-only `Supabase.SecretKey` to read the current verified account email. Find the `sb_secret_...` key under **Settings → API Keys → Publishable and secret API keys** in the Supabase dashboard. Put it under `Supabase.SecretKey` in `backend/appsettings.Local.json`, then restart the backend. [Supabase API keys](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys)
 
 | Section | Purpose | Values to prepare |
 | --- | --- | --- |
-| `Notifications.Email` | Application alert emails | SMTP host, provider port, `StartTls` or `SslOnConnect`, credentials and verified sender address. Set `Enabled` or enable the configured channel in Admin. |
-| `Notifications.Slack` | Personal Slack alerts | Install a Slack app with the bot scopes `users:read.email`, `im:write` and `chat:write`. Enter the bot token in `BotToken` and enable the channel. The member's Slack email must match the verified app email. [Slack email lookup](https://docs.slack.dev/reference/methods/users.lookupByEmail/) |
-| `News` | Scheduled ingestion | Enable the scheduler, set the interval, and approve feed domains. Use **Administration → News sources** to assign endpoints. Check permitted use before enabling. |
+| `Notifications.Email` | Application alert emails | In **Administration → Delivery channels → Email → Configure**, enter `smtp-relay.brevo.com`, port `587`, STARTTLS, the Brevo SMTP login and generated SMTP key, and a verified sender address. Brevo's free plan includes up to 300 sends per day. [Brevo SMTP setup](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP) · [Free plan limits](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan) |
+| `Notifications.Slack` | Personal Slack alerts | Install a Slack app with the bot scopes `users:read.email`, `im:write` and `chat:write`. In **Administration → Delivery channels → Slack → Configure**, enter its bot token. The member's Slack email must match the verified app email. [Slack email lookup](https://docs.slack.dev/reference/methods/users.lookupByEmail/) |
+| `News` | Scheduled ingestion | Hangfire runs enabled sources sequentially on startup and every 30 minutes by default. Individual sources can be paused in Admin. Set `News.Enabled` to false to stop automatic imports. The archive runs daily at 02:15 UTC and at startup. |
 
-Keep SMTP credentials, the Slack bot token and the Supabase secret key in backend local configuration. Supabase authentication email and application alert email have separate settings.
+Backend JSON remains a fallback for SMTP and Slack. The admin form stores encrypted provider settings in SQLite. Keep the local `.keys` folder with the database so those settings can still be decrypted. Hangfire's job history is in memory and recurring jobs are registered on startup. Supabase authentication email and application alert email have separate settings.

@@ -29,7 +29,9 @@ import { selectDeliveryPreferences } from './+state/delivery.selectors';
               type="checkbox"
               class="accent-primary"
               [checked]="selected().includes(option.channel)"
-              [disabled]="state().busy || !option.available"
+              [disabled]="
+                state().busy || (!option.available && !selected().includes(option.channel))
+              "
               (change)="toggle(option.channel, $event)"
             />
             {{ option.channel }}
@@ -51,7 +53,7 @@ export class DeliveryPreferences {
     this.store.selectSignal(selectDeliveryPreferences);
   protected readonly options: Signal<ChannelPreference[]> = computed(() => this.state().data);
   protected readonly canSave: Signal<boolean> = computed(() =>
-    this.options().some((option) => option.available),
+    this.options().some((option) => option.available || option.selected),
   );
   protected readonly selected: WritableSignal<string[]> = signal([]);
   constructor() {

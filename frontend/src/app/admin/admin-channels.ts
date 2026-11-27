@@ -1,13 +1,14 @@
 import { DatePipe } from '@angular/common';
-import { Component, Signal, inject } from '@angular/core';
+import { Component, Signal, WritableSignal, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ChannelOverview, ChannelSetting, deliveryActions } from '../shell/+state/delivery.actions';
 import type { DeliverySettings } from '../shell/+state/delivery.reducer';
 import { selectDeliveryAdmin } from '../shell/+state/delivery.selectors';
+import { ProviderConfigEditor } from './provider-config';
 
 @Component({
   selector: 'app-admin-channels',
-  imports: [DatePipe],
+  imports: [DatePipe, ProviderConfigEditor],
   template: ` <section class="rounded-2xl border border-line bg-white p-5 sm:p-7">
     <h2 class="text-xl font-semibold">Delivery channels</h2>
     @if (state().error) {
@@ -35,15 +36,33 @@ import { selectDeliveryAdmin } from '../shell/+state/delivery.selectors';
             }}
           </p>
         </div>
-        <button
-          type="button"
-          class="rounded-md border border-line px-3 py-1.5 text-primary"
-          [disabled]="!channel.configured || state().busy"
-          (click)="toggle(channel)"
-        >
-          {{ channel.enabled ? 'Disable' : 'Enable' }}
-        </button>
+        <div class="flex flex-wrap gap-2">
+          @if (channel.canConfigure) {
+            <button
+              type="button"
+              class="rounded-md border border-line px-3 py-1.5 text-primary"
+              (click)="editing.set(channel.channel)"
+            >
+              Configure
+            </button>
+          }
+          <button
+            type="button"
+            class="rounded-md border border-line px-3 py-1.5 text-primary"
+            [disabled]="!channel.configured || state().busy"
+            (click)="toggle(channel)"
+          >
+            {{ channel.enabled ? 'Disable' : 'Enable' }}
+          </button>
+        </div>
       </div>
+      @if (editing() === channel.channel) {
+        <app-provider-config
+          [channel]="channel.channel"
+          (saved)="providerSaved()"
+          (cancelled)="editing.set(null)"
+        />
+      }
     }
     <div class="mt-6 flex flex-wrap items-center justify-between gap-2">
       <h3 class="font-semibold">Recent delivery attempts</h3>
@@ -71,6 +90,7 @@ import { selectDeliveryAdmin } from '../shell/+state/delivery.selectors';
   </section>`,
 })
 export class AdminChannels {
+  protected readonly editing: WritableSignal<string | null> = signal(null);
   private readonly store: Store = inject(Store);
   protected readonly state: Signal<DeliverySettings<ChannelOverview>> =
     this.store.selectSignal(selectDeliveryAdmin);
@@ -79,6 +99,10 @@ export class AdminChannels {
   }
   protected load(): void {
     this.store.dispatch(deliveryActions.loadChannels());
+  }
+  protected providerSaved(): void {
+    this.editing.set(null);
+    this.load();
   }
   protected toggle(channel: ChannelSetting): void {
     this.store.dispatch(

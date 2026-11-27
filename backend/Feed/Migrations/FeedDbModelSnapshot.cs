@@ -45,6 +45,7 @@ public sealed class FeedDbModelSnapshot : ModelSnapshot
             entity.Property<string>("ImageUrl").HasColumnType("TEXT");
             entity.Property<string>("Url").IsRequired().HasColumnType("TEXT");
             entity.Property<DateTime>("PublishedAt").HasColumnType("TEXT");
+            entity.Property<bool>("Archived").HasColumnType("INTEGER");
             entity.HasKey("Id");
             entity.ToTable("Articles");
         });
@@ -68,6 +69,7 @@ public sealed class FeedDbModelSnapshot : ModelSnapshot
             entity.Property<string>("Name").IsRequired().HasColumnType("TEXT");
             entity.Property<string>("Url").IsRequired().HasColumnType("TEXT");
             entity.Property<int>("Kind").HasColumnType("INTEGER");
+            entity.Property<bool>("Enabled").HasColumnType("INTEGER");
             entity.Property<DateTime?>("LastSuccess").HasColumnType("TEXT");
             entity.Property<string>("Status").HasColumnType("TEXT");
             entity.HasKey("Id");
@@ -131,6 +133,13 @@ public sealed class FeedDbModelSnapshot : ModelSnapshot
             entity.ToTable("ImportedArticles");
             entity.HasOne("WorldEventAlerts.Feed.Article", null)
                 .WithMany().HasForeignKey("ArticleId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+        });
+        modelBuilder.Entity("WorldEventAlerts.Delivery.StoredChannelConfig", entity =>
+        {
+            entity.Property<string>("Channel").HasColumnType("TEXT");
+            entity.Property<string>("ProtectedJson").IsRequired().HasColumnType("TEXT");
+            entity.HasKey("Channel");
+            entity.ToTable("StoredChannelConfigs");
         });
     }
 }

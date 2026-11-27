@@ -30,6 +30,7 @@ export const sourcesReducer = createReducer(
     sourcesActions.load,
     sourcesActions.save,
     sourcesActions.run,
+    sourcesActions.setAvailability,
     sourcesActions.test,
     sourcesActions.delete,
     (state): SourcesState => ({ ...state, busy: true, message: '', error: '', saved: false }),

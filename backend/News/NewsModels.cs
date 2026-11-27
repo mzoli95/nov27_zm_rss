@@ -29,10 +29,12 @@ public sealed class NewsSource
     public required string Name { get; set; }
     public required string Url { get; set; }
     public SourceKind Kind { get; set; }
+    public bool Enabled { get; set; } = true;
     public DateTime? LastSuccess { get; set; }
     public string? Status { get; set; }
 }
 public sealed record SourceMappingInput(string Topic, string? Keywords);
 public sealed record SourceUpdate(string Name, string Url, SourceKind Kind, SourceMappingInput[] Topics);
+public sealed record SourceAvailability(bool Enabled);
 public sealed record NewsItem(string Url, string Title, string Description, string? ImageUrl, DateTime PublishedAt);
 public sealed record Preferences(string[] Topics, string[] Labels);

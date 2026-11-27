@@ -19,7 +19,9 @@ The authentication forms require passwords of at least six characters. Keep the 
 - In **Administration → News sources**, use **Add source** to open the editor. Enter an approved HTTPS RSS, Atom or USGS URL and select one or more topics. Optional comma-separated keywords restrict each assignment. **Test source** reads the live payload without saving or importing. You can edit or delete existing sources and use **Run now** to import immediately. Deleting a source preserves existing articles.
 - BBC World, Business and Technology are seeded. Business supplies the default coverage for **Economy**, **Stock Market** and **Crypto**. For additional crypto coverage, assign `https://cointelegraph.com/rss` to **Crypto**. For earthquake reports, select **USGS earthquakes**, enter `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` and select **Natural Disasters**.
 - Each source's first successful import populates the feed silently. Later new matches appear under the notification bell. Articles are deduplicated by normalized URL and exact normalized headline on the same UTC publication date.
-- Scheduled imports run every 30 minutes after enabling `News.Enabled` in local backend settings. Approve any additional feed domains in `News.AllowedHosts`. Check permitted use before enabling automated imports.
+- Hangfire runs enabled sources sequentially on startup and every 30 minutes by default. Sources can be paused individually. SQLite retains normalized article identities so reruns can skip duplicates.
+- The daily archive job removes summaries and image URLs from articles older than seven days, excludes them from the active feed, and compacts SQLite when rows were archived. Saved likes and existing inbox entries keep their titles and original links.
+- Approve any additional feed domains in `News.AllowedHosts`. Set `News.Enabled` to false to stop automatic imports. Review permitted use for the feeds you enable.
 
 ## Supabase roles and review accounts
 
@@ -49,7 +51,8 @@ After bootstrapping the first administrator, add a Supabase `sb_secret_...` key 
 ## Email and Slack delivery
 
 - **Profile → Delivery channels** starts with email selected and Slack unselected. Both use the verified Supabase account address.
-- **Administration → Delivery channels** shows provider availability, global enable/disable controls and recent delivery outcomes. Provider credentials are configured on the backend. See [local setup](docs/local-setup.md#email-slack-and-rss).
+- **Administration → Delivery channels** provides SMTP and Slack bot settings, global controls and recent outcomes. Provider secrets are encrypted in SQLite and hidden from subsequent reads. See [local setup](docs/local-setup.md#email-slack-and-rss).
+- Email alerts use the application's blue HTML template with a plain-text alternative. [Brevo SMTP setup](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP)
 - Slack uses an installed bot to find the matching account in its workspace and send a direct message. An account absent from that workspace cannot receive the DM.
 - Deliveries use a persisted queue. `Accepted` means the provider acknowledged the request. `Ambiguous` means the app could not confirm the outcome and will avoid automatically resending that attempt.
 - To add a new channel type, implement `INotificationSender` and register it in the backend. Channel preferences, global switches and queue processing use the registered adapters.

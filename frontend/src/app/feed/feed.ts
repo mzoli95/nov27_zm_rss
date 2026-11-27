@@ -8,7 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FieldTree, FormField, form } from '@angular/forms/signals';
 import { Store } from '@ngrx/store';
@@ -131,9 +131,16 @@ import { selectFeed } from './+state/feed.selectors';
       <p role="status" class="sr-only">Loading articles…</p>
     }
     @if (!state().loading && !state().error && !state().items.length) {
-      <p>
-        {{ likedOnly ? 'No liked posts match your filters.' : 'No articles match your filters.' }}
-      </p>
+      @if (applied().preferred && !likedOnly) {
+        <p>No articles match your interests yet.</p>
+        <button type="button" class="mt-2 text-primary underline" (click)="showAll()">
+          Show all news
+        </button>
+      } @else {
+        <p>
+          {{ likedOnly ? 'No liked posts match your filters.' : 'No articles match your filters.' }}
+        </p>
+      }
     }
     @if (state().nextCursor !== null && !state().error) {
       <button
@@ -150,6 +157,7 @@ import { selectFeed } from './+state/feed.selectors';
 export class Feed {
   private readonly store: Store = inject(Store);
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
+  private readonly router: Router = inject(Router);
   protected readonly likedOnly: boolean = this.route.snapshot.data['liked'] === true;
   protected readonly state: Signal<FeedState> = this.store.selectSignal(selectFeed);
   protected readonly topics: readonly string[] = [
@@ -173,7 +181,7 @@ export class Feed {
     preferred: this.route.snapshot.queryParamMap.get('preferred') === 'true',
   });
   protected readonly fields: FieldTree<FeedQuery> = form(this.query);
-  private applied: FeedQuery = this.query();
+  protected readonly applied: WritableSignal<FeedQuery> = signal(this.query());
   private readonly more: Signal<ElementRef<HTMLButtonElement> | undefined> = viewChild('more');
 
   constructor() {
@@ -193,12 +201,28 @@ export class Feed {
 
   protected applyFilters(event: SubmitEvent): void {
     event.preventDefault();
-    this.applied = this.query();
-    this.load();
+    this.applyQuery();
+  }
+
+  protected showAll(): void {
+    this.query.update((query) => ({ ...query, preferred: false, topic: '', search: '' }));
+    this.applyQuery();
   }
 
   protected load(cursor: number | null = null): void {
-    this.store.dispatch(feedActions.load({ query: this.applied, cursor }));
+    this.store.dispatch(feedActions.load({ query: this.applied(), cursor }));
+  }
+
+  private applyQuery(): void {
+    this.applied.set(this.query());
+    if (!this.likedOnly)
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { preferred: this.applied().preferred ? true : null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    this.load();
   }
 
   protected hideBrokenImage(event: Event): void {

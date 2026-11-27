@@ -4,7 +4,7 @@ namespace WorldEventAlerts.News;
 
 public sealed class NewsOptions
 {
-    public bool Enabled { get; init; }
+    public bool Enabled { get; init; } = true;
     public int PollingIntervalMinutes { get; init; } = 30;
     public string[] AllowedHosts { get; init; } = ["feeds.bbci.co.uk", "cointelegraph.com", "earthquake.usgs.gov"];
 }
