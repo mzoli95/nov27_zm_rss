@@ -8,6 +8,8 @@ if (builder.Environment.IsDevelopment())
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
 builder.Services.Configure<SupabaseSettings>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<SupabaseIdentity>(client => client.Timeout = TimeSpan.FromSeconds(8));
+builder.Services.AddHttpClient<RoleAdministration>(client => client.Timeout = TimeSpan.FromSeconds(8))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddAuthentication("Supabase")
     .AddScheme<AuthenticationSchemeOptions, SupabaseAuthentication>("Supabase", _ => { });
 builder.Services.AddAuthorizationBuilder()
@@ -35,5 +37,11 @@ app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSetting
 
 var api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("/feed", FeedEndpoints.Read);
+api.MapPut("/feed/{id:int}/like", FeedEndpoints.SetLike);
 api.MapGet("/admin/access", () => Results.NoContent()).RequireAuthorization(nameof(AppRole.Admin));
+api.MapPut("/admin/users/{id:guid}/role",
+    (Guid id, ChangeRoleRequest request, RoleAdministration roles,
+        System.Security.Claims.ClaimsPrincipal actor, CancellationToken cancellationToken) =>
+        roles.ChangeRoleAsync(id, request, actor, cancellationToken))
+    .RequireAuthorization(nameof(AppRole.Admin));
 app.Run();

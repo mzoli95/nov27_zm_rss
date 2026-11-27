@@ -10,6 +10,16 @@ public sealed class FeedDbModelSnapshot : ModelSnapshot
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
         modelBuilder.HasAnnotation("ProductVersion", "11.0.0");
+        modelBuilder.Entity("WorldEventAlerts.Feed.ArticleLike", entity =>
+        {
+            entity.Property<Guid>("UserId").HasColumnType("TEXT");
+            entity.Property<int>("ArticleId").HasColumnType("INTEGER");
+            entity.HasKey("UserId", "ArticleId");
+            entity.HasIndex("ArticleId");
+            entity.ToTable("ArticleLikes");
+            entity.HasOne("WorldEventAlerts.Feed.Article", null)
+                .WithMany().HasForeignKey("ArticleId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+        });
         modelBuilder.Entity("WorldEventAlerts.Feed.Article", entity =>
         {
             entity.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("INTEGER");

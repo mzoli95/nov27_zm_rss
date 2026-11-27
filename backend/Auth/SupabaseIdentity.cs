@@ -8,6 +8,7 @@ public sealed class SupabaseSettings
 {
     public string Url { get; init; } = "";
     public string PublishableKey { get; init; } = "";
+    public string SecretKey { get; init; } = "";
     public string BrowserKey => PublishableKey.StartsWith("sb_publishable_", StringComparison.Ordinal)
         ? PublishableKey
         : "";

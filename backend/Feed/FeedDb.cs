@@ -9,4 +9,14 @@ public sealed record Article(
 public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options)
 {
     public DbSet<Article> Articles => Set<Article>();
+    public DbSet<ArticleLike> ArticleLikes => Set<ArticleLike>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        var likes = modelBuilder.Entity<ArticleLike>();
+        likes.HasKey(like => new { like.UserId, like.ArticleId });
+        likes.HasOne<Article>().WithMany().HasForeignKey(like => like.ArticleId);
+    }
 }
+
+public sealed record ArticleLike(Guid UserId, int ArticleId);

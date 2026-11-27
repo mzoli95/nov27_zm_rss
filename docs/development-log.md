@@ -66,3 +66,10 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Centered the feed and stacked article cards in one column. Preserved the filters and incremental loading. Checked for administrative Supabase credentials, which were unavailable in the session.
 - **Decision and origin:** The single-column layout and controls came from the user. The assistant selected a readable maximum width and retained the existing pagination.
 - **Verification:** Angular build passed. Edge confirmed that desktop article cards share the same width and horizontal position, appear in successive rows, and still load the next page on scroll with a mocked API.
+
+## Liked posts and role administration
+
+- **User request:** Add likes and a Liked posts entry in the account menu. Show article images or placeholders. Let admins assign roles and grant the first administrator in Supabase. Publish on a separate review branch.
+- **Assistant response:** Added user-scoped SQLite likes, image fallbacks and a guarded admin form that applies roles by Supabase UID through a server-side client. Hosted bootstrap still requires privileged project access.
+- **Decision and origin:** The user requested the feed and admin capabilities. The assistant chose idempotent like writes, a single reusable feed route component, and a server-side secret with a self-demotion safeguard.
+- **Verification:** Angular build passed. The Release backend was built while the running Debug backend retained its files. A temporary SQLite check passed migration, duplicate suppression, account isolation and unlike. A mocked Edge check passed image fallback, like, Liked posts and unlike. Live Supabase role writes remain unverified.
