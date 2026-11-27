@@ -147,6 +147,7 @@ export class App {
   }
 
   protected toggle(panel: HeaderPanel): void {
+    if (panel === HeaderPanel.Account && this.panel() !== panel) this.auth.refreshAdmin();
     if (panel === HeaderPanel.Notifications && this.panel() !== panel)
       this.store.dispatch(notificationActions.refresh());
     this.panel.update((current) => (current === panel ? null : panel));

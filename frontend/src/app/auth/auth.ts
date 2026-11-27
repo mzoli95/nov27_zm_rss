@@ -10,7 +10,8 @@ import {
 import { CanActivateFn, Router } from '@angular/router';
 import { HttpInterceptorFn, HttpClient } from '@angular/common/http';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { catchError, map, of } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { Subject, catchError, map, of, startWith, switchMap } from 'rxjs';
 
 export interface AppConfig {
   supabaseUrl: string;
@@ -35,18 +36,42 @@ export interface AuthCredentials {
 
 @Injectable({ providedIn: 'root' })
 export class Auth {
+  private readonly http: HttpClient = inject(HttpClient);
+  private readonly adminRefresh: Subject<void> = new Subject<void>();
   private readonly config: AppConfig = inject(APP_CONFIG);
   readonly client: WritableSignal<SupabaseClient | null> = signal(null);
   readonly session: WritableSignal<Session | null> = signal(null);
   readonly recovery: WritableSignal<boolean> = signal(false);
   readonly configured: Signal<boolean> = computed(() => this.client() !== null);
   readonly signedIn: Signal<boolean> = computed(() => !!this.session()?.user.email_confirmed_at);
-  readonly isAdmin: Signal<boolean> = computed(
-    () => this.signedIn() && this.session()?.user.app_metadata['app_role'] === AppRole.Admin,
-  );
   readonly email: Signal<string> = computed(() => this.session()?.user.email ?? '');
   readonly userId: Signal<string | null> = computed(() => this.session()?.user.id ?? null);
+  private readonly verifiedUserId: Signal<string | null> = computed(() =>
+    this.signedIn() ? this.userId() : null,
+  );
+  readonly isAdmin: Signal<boolean> = toSignal(
+    toObservable(this.verifiedUserId).pipe(
+      switchMap((userId) => {
+        if (!userId) return of(false);
+        return this.adminRefresh.pipe(
+          startWith(undefined),
+          switchMap(() =>
+            this.http.get<void>('/api/admin/access').pipe(
+              map(() => true),
+              catchError(() => of(false)),
+            ),
+          ),
+          startWith(false),
+        );
+      }),
+    ),
+    { initialValue: false },
+  );
   readonly ready: Promise<void> = this.initialize().catch(() => this.session.set(null));
+
+  refreshAdmin(): void {
+    this.adminRefresh.next();
+  }
 
   async submit(mode: AuthMode, credentials: AuthCredentials): Promise<string | null> {
     const client: SupabaseClient | null = this.client();
