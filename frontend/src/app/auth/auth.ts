@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { HttpInterceptorFn, HttpClient } from '@angular/common/http';
+import { HttpInterceptorFn, HttpClient, HttpErrorResponse } from '@angular/common/http';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -123,7 +123,10 @@ export class Auth {
       }
       case AuthMode.Login: {
         const { error } = await client.auth.signInWithPassword(credentials);
-        return error?.message ?? null;
+        if (error) return error.message;
+        return (await this.verifyAccess(client))
+          ? null
+          : 'This account cannot access World Event Alerts.';
       }
     }
   }
@@ -142,6 +145,20 @@ export class Auth {
     const { data } = await client.auth.getSession();
     this.session.set(data.session);
     this.client.set(client);
+    if (this.signedIn()) await this.verifyAccess(client);
+  }
+
+  private async verifyAccess(client: SupabaseClient): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.get<void>('/api/account/access'));
+      return true;
+    } catch (error: unknown) {
+      if (!(error instanceof HttpErrorResponse) || (error.status !== 401 && error.status !== 403))
+        throw error;
+      this.session.set(null);
+      await client.auth.signOut({ scope: 'local' });
+      return false;
+    }
   }
 }
 

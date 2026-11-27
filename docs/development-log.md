@@ -1,6 +1,9 @@
 # Development log
 
 The complete public-facing text is recorded in the [full conversation](#full-conversation) at the end of this document.
+### Feature folder organization
+
+The user requested separate folders for backend responsibilities and a dedicated folder for each Angular component. The AI kept the feature boundaries, moved the files, updated Angular import paths and recorded the convention in AGENTS.md. Feature NgRx state stays in the parent folder.
 
 This is a retrospective English summary of the planning conversation, followed by ongoing entries. Keep the original prompts separately and preserve their wording for the submission. The rows below capture attribution and decisions.
 
