@@ -16,6 +16,8 @@ Verified on 2026-11-27 from a fresh clone of `70055a9`. The verification runnabl
 | Admin route without a session | HTTP 401 |
 | Receipt in a real email inbox and Slack DM for the same RSS match | Pending. The isolated test records dispatch through substitute senders. |
 
+The project owner subsequently reported receipt in the app, by email and in Slack. Provider acceptance and failures are documented separately in [account archive and delivery verification](account-archive-verification.md). The report confirms live use; it does not correlate one specific RSS match across all destinations.
+
 ## Reproduce
 
 Use .NET 11 and a Node version supported by the project's Angular CLI. Run `dotnet run --project verification/demo/Demo.csproj` from the root. The runnable prints nine PASS lines, exits with an error on the first failed check, and uses no real credentials.

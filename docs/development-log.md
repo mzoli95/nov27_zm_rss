@@ -238,6 +238,10 @@ The user asked for backend responsibility folders and a dedicated Angular direct
 
 The user requested the full dialogue in this development log instead of maintaining separate transcript and expanded-summary files. The AI used the local session event log to preserve the original order and wording, included assistant progress and answers, and masked credentials and identifiers. The clean-checkout verification and status review are separate commits, [d951bcc](https://github.com/mzoli95/nov27_zm_rss/commit/d951bcccf6c3c0328e75832c970e2f34af7fcedf) and [fe322e7](https://github.com/mzoli95/nov27_zm_rss/commit/fe322e76a3999e27d01f9730206bc4486f3117db). Fixture checks passed. Live two-channel receipt of one RSS alert remains a separate check.
 
+### Final review follow-up
+
+The user asked for an audit of the submission, milestone history, test evidence and GitHub main, then requested the recommended updates in a separate branch. The AI preserved the original milestone order, refreshed the statuses, and brought the local individual read-receipt and account-menu email changes into review. The user confirmed live receipt in the app, email and Slack. The [verification results](account-archive-verification.md) distinguish that report from provider counters and automated fixture checks. Angular and .NET builds passed on the follow-up branch, and the reproducible demo passed all nine checks.
+
 ## Full conversation
 
 The transcript follows the chronological session log through the consolidation request and the recorded progress for this export. It includes 81 user messages, 78 assistant answers and 75 assistant progress updates. It preserves the original languages and wording. Credentials, personal identifiers and local account names are masked. Attachment locations are marked. Binary attachments, IDE-only context and tool internals are excluded.

@@ -63,8 +63,8 @@ See [MILESTONES.md](MILESTONES.md) for GitHub review checkpoints, validation ste
 | Implemented, verification partial | Workspace and accounts | Root Git repo, frontend/ and backend/, clean builds, migration, signup, recovery, and a denied admin call from a normal account. |
 | Implemented, verified | News feed and sources | Profile preferences, topic assignment, scheduled and manual imports, RSS images, and duplicate checks. Live BBC and USGS import checked. Confirm permitted use before enabling scheduled imports. |
 | Implemented, live verification partial | Rules and delivery | Saved inbox and channel preferences, persisted email and Slack attempts, and independent outcomes verified with test providers. Fixture verification passed. Live receipt of the same RSS alert through both providers is pending. |
-| Partial | Admin, realtime and deletion | Admin user listing and role assignment, source management, channel configuration and test sends shipped. SignalR, full user and rule administration, and self-service deletion remain deferred. |
-| Partial | Final review and handoff | Fresh checkout builds, live first import and deterministic matching and delivery checks passed. Live two-channel receipt and the complete prompt export remain open. |
+| Partial | Admin, realtime and deletion | Admin user listing and role assignment, source management, channel configuration and test sends shipped. Self-service account archival shipped with fixture checks. SignalR and full user and rule administration remain deferred. |
+| Partial | Final review and handoff | Fresh checkout builds, live first import and deterministic matching and delivery checks passed. The redacted conversation is published and the owner confirmed receipt through all three destinations. Correlation of one live RSS alert across those destinations remains open. |
 
 ## Optional extensions
 

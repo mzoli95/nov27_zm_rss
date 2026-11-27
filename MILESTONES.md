@@ -18,7 +18,7 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Build both projects, apply migrations to a fresh SQLite database, exercise registration and login, and verify that a normal user receives a denial from an admin endpoint. Check navigation and forms on mobile and desktop.
 - **Human review:** Review the page shell, Supabase flow, authorization boundary and NgRx folder structure.
 - **Commit:** `feat: scaffold application and authentication`
-- **Status:** Shell ready for review. Build, fixture migration, anonymous API checks and mocked browser checks passed. Real Supabase flows remain pending project configuration.
+- **Status:** Shell ready for review. Build, fixture migration, anonymous API checks and mocked browser checks passed. Real Supabase registration, email confirmation and admin access were exercised during development. Password reset and the mobile review have no recorded final result.
 
 ## 3. RSS ingestion and browsing
 
@@ -34,20 +34,20 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Test matching and nonmatching stories, repeated ingestion, isolated channel failures and ambiguous delivery. Record real receipt separately from delivery records.
 - **Human review:** Review rule semantics, preference defaults and adapter boundaries.
 - **Commit:** `feat: match alerts and deliver notifications`
-- **Status:** The importer and digest worker passed a fixture with isolated sender substitutes. SMTP reported acceptance for a live attempt and a Slack test showed an unread badge. Receipt of the same RSS match in both real destinations is still unverified.
+- **Status:** The importer and digest worker passed a fixture with isolated sender substitutes. The project owner confirmed receiving alerts in the app, via email and via Slack. SQLite recorded 11 email and five Slack attempts accepted by providers, alongside six failed Slack attempts. One specific RSS alert has not yet been correlated across all three destinations. See [delivery verification](docs/account-archive-verification.md).
 
 ## 5. Administration and realtime
 
 - **Scope:** Complete user and rule administration, supported channel configuration, global channel switches, SignalR updates and self-service account deletion.
 - **Checks:** Verify online and offline channel changes, authorization boundaries, retained preferences and delivery suppression after deletion.
 - **Human review:** Review administrator workflows, live status and deletion behavior.
-- **Status:** Admin role assignment, sources, schedules, channel configuration, templates and test sends shipped. SignalR, self-service deletion and full admin user and rule editing are deferred.
+- **Status:** Admin role assignment, sources, schedules, channel configuration, templates and test sends shipped. Self-service account archiving shipped and passed isolated checks for retention and delivery suppression. Browser confirmation and sign-in rejection remain pending. SignalR and full admin user and rule editing are deferred.
 
 ## 6. End-to-end verification and handoff
 
 - **Scope:** Document setup and the demo, collect evidence, preserve prompt history and agent handoffs, and review the repository contents.
 - **Checks:** Start from a clean checkout and reproduce the demo. Check tracked files for credentials, databases and logs. Record any unverified integrations.
 - **Human review:** Review the final demo, outstanding gaps and supporting evidence.
-- **Status:** Fresh checkout and reproducible fixture verified. Live dual-channel receipt and the complete original prompt export remain open. The newest inbox read-receipt change was local during this review.
+- **Status:** Fresh checkout and reproducible fixture verified. The full redacted text conversation is in the development log. The final follow-up brings individual inbox read receipts and the signed-in email in the account menu into review. Browser verification of that change and receipt of a single correlated live alert remain open.
 
 Price alerts are optional and receive a separate review milestone if added after the news flow passes verification.
