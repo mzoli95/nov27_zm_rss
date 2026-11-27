@@ -29,3 +29,4 @@ The app can support more news providers by adding source adapters for their APIs
 - [Implementation and review milestones](MILESTONES.md)
 - [Repository instructions](AGENTS.md)
 - [Development log](docs/development-log.md)
+- [Windows CMD and integration setup](docs/local-setup.md)
