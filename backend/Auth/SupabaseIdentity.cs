@@ -8,13 +8,17 @@ public sealed class SupabaseSettings
 {
     public string Url { get; init; } = "";
     public string PublishableKey { get; init; } = "";
-    public string[] AdminUserIds { get; init; } = [];
     public string BrowserKey => PublishableKey.StartsWith("sb_publishable_", StringComparison.Ordinal)
         ? PublishableKey
         : "";
 }
 
-public sealed record SupabaseUser(string Id, [property: JsonPropertyName("email_confirmed_at")] string? EmailConfirmedAt);
+public sealed record SupabaseAppMetadata([property: JsonPropertyName("app_role")] string? AppRole);
+
+public sealed record SupabaseUser(
+    string Id,
+    [property: JsonPropertyName("email_confirmed_at")] string? EmailConfirmedAt,
+    [property: JsonPropertyName("app_metadata")] SupabaseAppMetadata? AppMetadata);
 
 public sealed class SupabaseIdentity(HttpClient client, IOptions<SupabaseSettings> settings)
 {

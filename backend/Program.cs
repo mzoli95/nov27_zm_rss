@@ -11,7 +11,7 @@ builder.Services.AddHttpClient<SupabaseIdentity>(client => client.Timeout = Time
 builder.Services.AddAuthentication("Supabase")
     .AddScheme<AuthenticationSchemeOptions, SupabaseAuthentication>("Supabase", _ => { });
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("Admin", policy => policy.RequireRole("admin"));
+    .AddPolicy(nameof(AppRole.Admin), policy => policy.RequireRole(nameof(AppRole.Admin)));
 builder.Services.AddDbContext<FeedDb>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("App")));
 
@@ -35,5 +35,5 @@ app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSetting
 
 var api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("/feed", FeedEndpoints.Read);
-api.MapGet("/admin/access", () => Results.NoContent()).RequireAuthorization("Admin");
+api.MapGet("/admin/access", () => Results.NoContent()).RequireAuthorization(nameof(AppRole.Admin));
 app.Run();
