@@ -1,7 +1,7 @@
 import { Component, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
 import { FieldTree, FormField, form, minLength, pattern, required } from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Auth, AuthMode, CONFIRMATION_REQUIRED } from './auth';
+import { Auth, AuthMode, CONFIRMATION_REQUIRED } from '../auth';
 
 interface AuthFields {
   email: string;

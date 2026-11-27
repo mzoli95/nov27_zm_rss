@@ -2,11 +2,11 @@ import { Component, Signal, WritableSignal, computed, effect, inject, signal } f
 import { FieldTree, FormField, form } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Auth } from '../auth/auth';
-import { profileActions, ProfilePreferences } from './+state/profile.actions';
-import type { ProfileState } from './+state/profile.reducer';
-import { selectProfile } from './+state/profile.selectors';
-import { DeliveryPreferences } from './delivery-preferences';
+import { Auth } from '../../auth/auth';
+import { profileActions, ProfilePreferences } from '../+state/profile.actions';
+import type { ProfileState } from '../+state/profile.reducer';
+import { selectProfile } from '../+state/profile.selectors';
+import { DeliveryPreferences } from '../delivery-preferences/delivery-preferences';
 
 interface PreferenceFields {
   labels: string;

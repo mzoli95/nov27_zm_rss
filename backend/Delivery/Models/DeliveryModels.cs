@@ -12,7 +12,6 @@ public static class DeliveryChannels
         Array.AsReadOnly(new[] { Teams, Discord, Telegram });
 }
 
-public enum DeliveryStatus { Pending, Sending, Accepted, Failed, Ambiguous, Skipped, Omitted }
 public sealed record ChannelPreference(Guid UserId, string Channel, bool Enabled);
 public sealed record ChannelState(string Channel, bool Enabled);
 public sealed record ChannelSettingsInput(bool Enabled);

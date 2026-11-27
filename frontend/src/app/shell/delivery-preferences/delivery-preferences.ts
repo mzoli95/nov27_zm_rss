@@ -1,8 +1,8 @@
 import { Component, Signal, WritableSignal, computed, effect, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ChannelPreference, deliveryActions } from './+state/delivery.actions';
-import type { DeliverySettings } from './+state/delivery.reducer';
-import { selectDeliveryPreferences } from './+state/delivery.selectors';
+import { ChannelPreference, deliveryActions } from '../+state/delivery.actions';
+import type { DeliverySettings } from '../+state/delivery.reducer';
+import { selectDeliveryPreferences } from '../+state/delivery.selectors';
 
 @Component({
   selector: 'app-delivery-preferences',

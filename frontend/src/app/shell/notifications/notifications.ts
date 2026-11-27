@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { Component, Signal, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Inbox, notificationActions } from './+state/notifications.actions';
-import { selectInbox } from './+state/notifications.selectors';
+import { Inbox, notificationActions } from '../+state/notifications.actions';
+import { selectInbox } from '../+state/notifications.selectors';
 
 @Component({
   imports: [DatePipe],

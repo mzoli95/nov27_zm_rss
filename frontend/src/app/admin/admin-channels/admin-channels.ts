@@ -5,10 +5,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { finalize } from 'rxjs';
-import { ChannelOverview, ChannelSetting, deliveryActions } from '../shell/+state/delivery.actions';
-import type { DeliverySettings } from '../shell/+state/delivery.reducer';
-import { selectDeliveryAdmin } from '../shell/+state/delivery.selectors';
-import { ProviderConfigEditor } from './provider-config';
+import { ChannelOverview, ChannelSetting, deliveryActions } from '../../shell/+state/delivery.actions';
+import type { DeliverySettings } from '../../shell/+state/delivery.reducer';
+import { selectDeliveryAdmin } from '../../shell/+state/delivery.selectors';
+import { ProviderConfigEditor } from '../provider-config/provider-config';
 
 enum TestDeliveryStatus {
   Accepted = 'Accepted',

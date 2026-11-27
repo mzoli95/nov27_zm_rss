@@ -5,13 +5,6 @@ using WorldEventAlerts.Delivery;
 
 namespace WorldEventAlerts.Feed;
 
-public sealed record Article(
-    int Id, string Title, string Description, string Topic, string Source,
-    string? ImageUrl, string Url, DateTime PublishedAt)
-{
-    public bool Archived { get; init; }
-}
-
 public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options)
 {
     public DbSet<Article> Articles => Set<Article>();
