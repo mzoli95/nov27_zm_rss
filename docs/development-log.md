@@ -93,3 +93,10 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Added accessible field errors for auth and admin role forms, updated the password rule, and added consistent CSS icons for password visibility, notifications, account and like states.
 - **Decision and origin:** The user specified the password minimum and icon behavior. The assistant chose to show validation errors after a field is touched or the form is submitted.
 - **Verification:** Angular build, ESLint and Prettier passed. Edge with mocked API responses verified that invalid email, a five-character password and an unchecked privacy notice block registration, while six characters pass the client check. Also verified both password visibility states, malformed admin UUID feedback and the outline-to-filled heart transition.
+
+## Icon library follow-up
+
+- **User request:** Replace the custom SVG icons with a free library, improve the account chevrons and keep the same review branch.
+- **Assistant response:** Replaced the SVG masks and CSS-drawn chevron with the locally bundled Bootstrap Icons font. Kept accessible names and selected states.
+- **Decision and origin:** The user requested library icons and gave the account chevrons as an example. The assistant chose the MIT-licensed Bootstrap Icons font.
+- **Verification:** Edge confirmed font loading, both chevron states, password visibility and the heart transition.

@@ -31,7 +31,7 @@ enum HeaderPanel {
                   [attr.aria-expanded]="panel() === HeaderPanel.Notifications"
                   (click)="toggle(HeaderPanel.Notifications)"
                 >
-                  <span aria-hidden="true" class="ui-icon icon-bell"></span>
+                  <span aria-hidden="true" class="bi bi-bell block text-lg leading-none"></span>
                   @if (unread() > 0) {
                     <span
                       class="absolute -top-1 right-0 rounded-full bg-primary px-1 text-xs text-white"
@@ -51,16 +51,20 @@ enum HeaderPanel {
               <div class="relative">
                 <button
                   type="button"
-                  class="flex items-center gap-1 rounded-lg p-2 hover:bg-tint"
+                  class="flex items-center gap-2 rounded-lg p-2 hover:bg-tint"
                   aria-label="Account options"
                   [attr.aria-expanded]="panel() === HeaderPanel.Account"
                   (click)="toggle(HeaderPanel.Account)"
                 >
-                  <span aria-hidden="true" class="ui-icon icon-user"></span>
                   <span
                     aria-hidden="true"
-                    class="icon-chevron"
-                    [class.-rotate-135]="panel() === HeaderPanel.Account"
+                    class="bi bi-person-circle block text-xl leading-none"
+                  ></span>
+                  <span
+                    aria-hidden="true"
+                    class="bi block text-xs leading-none text-muted"
+                    [class.bi-chevron-up]="panel() === HeaderPanel.Account"
+                    [class.bi-chevron-down]="panel() !== HeaderPanel.Account"
                   ></span>
                 </button>
                 @if (panel() === HeaderPanel.Account) {

@@ -59,9 +59,9 @@ const EMAIL_FORMAT: RegExp = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
                 [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
               >
                 <span
-                  class="ui-icon"
-                  [class.icon-eye]="!passwordVisible()"
-                  [class.icon-eye-off]="passwordVisible()"
+                  class="bi block text-lg leading-none"
+                  [class.bi-eye]="!passwordVisible()"
+                  [class.bi-eye-slash]="passwordVisible()"
                   aria-hidden="true"
                 ></span>
               </button>

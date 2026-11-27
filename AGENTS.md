@@ -26,7 +26,7 @@
 - Reuse the Tailwind theme tokens in frontend/src/styles.css. Use ink (#11243b), muted (#4b6179), primary (#1759b0), primary-hover (#12468b), page (#f4f8fe), line (#d7e3f2), and tint (#e4efff).
 - Start each new implementation branch from the latest remote main and send it for review.
 - Use NgRx for shared feature state. Place actions, effects, reducers and selectors in the feature's `+state/` folder. Keep transient form and component state local. Effects coordinate I/O, reducers stay pure, and selectors derive view data.
-- Use Signal Forms and modern Angular template control flow. Bind derived state through selector signals or computed signals. Compare typed enum values for finite UI states. Use icon components in templates and run ESLint and Prettier checks.
+- Use Signal Forms and modern Angular template control flow. Bind derived state through selector signals or computed signals. Compare typed enum values for finite UI states. Use the local Bootstrap Icons font in templates and run ESLint and Prettier checks.
 - Prefer the async pipe or signals for view bindings. Use `takeUntilDestroyed` for imperative subscriptions. Stop SignalR on logout, remove handlers when the owner is disposed, and avoid multiple connections per session.
 
 ## ASP.NET Core and SQLite

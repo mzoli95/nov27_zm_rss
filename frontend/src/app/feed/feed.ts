@@ -86,10 +86,10 @@ import { selectFeed } from './+state/feed.selectors';
                 (click)="toggleLike(article)"
               >
                 <span
-                  class="ui-icon"
+                  class="bi block text-lg leading-none"
                   aria-hidden="true"
-                  [class.icon-heart]="!article.liked"
-                  [class.icon-heart-filled]="article.liked"
+                  [class.bi-heart]="!article.liked"
+                  [class.bi-heart-fill]="article.liked"
                 ></span>
               </button>
               <a
