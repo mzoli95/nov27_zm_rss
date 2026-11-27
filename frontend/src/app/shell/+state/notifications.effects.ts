@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { EMPTY, catchError, exhaustMap, map, merge, switchMap, timer } from 'rxjs';
+import { EMPTY, catchError, concatMap, map, merge, switchMap, timer } from 'rxjs';
 import { Inbox, notificationActions } from './notifications.actions';
 
 const path: string = '/api/notifications';
@@ -15,17 +15,25 @@ export const readInbox = createEffect(
               timer(0, 60_000),
               actions.pipe(ofType(notificationActions.refresh, notificationActions.markRead)),
             ).pipe(
-              switchMap((action) =>
+              concatMap((action) =>
                 typeof action === 'number' || action.type === notificationActions.refresh.type
                   ? http.get<Inbox>(path).pipe(
                       map((inbox) => notificationActions.loaded({ inbox })),
                       catchError(() => EMPTY),
                     )
-                  : http.post<void>(path + '/read', {}).pipe(
-                      exhaustMap(() => http.get<Inbox>(path)),
-                      map((inbox) => notificationActions.loaded({ inbox })),
-                      catchError(() => EMPTY),
-                    ),
+                  : http
+                      .post<void>(
+                        path + '/read',
+                        {},
+                        {
+                          params: action.articleId === null ? {} : { articleId: action.articleId },
+                        },
+                      )
+                      .pipe(
+                        switchMap(() => http.get<Inbox>(path)),
+                        map((inbox) => notificationActions.loaded({ inbox })),
+                        catchError(() => EMPTY),
+                      ),
               ),
             )
           : EMPTY,

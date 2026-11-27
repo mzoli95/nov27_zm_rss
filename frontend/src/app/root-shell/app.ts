@@ -24,6 +24,7 @@ export class App {
   protected readonly HeaderPanel: typeof HeaderPanel = HeaderPanel;
   protected readonly signedIn: Signal<boolean> = this.auth.signedIn;
   protected readonly isAdmin: Signal<boolean> = this.auth.isAdmin;
+  protected readonly email: Signal<string> = this.auth.email;
   protected readonly panel: WritableSignal<HeaderPanel | null> = signal(null);
   protected readonly inbox: Signal<Inbox> = this.store.selectSignal(selectInbox);
   protected readonly signOutError: WritableSignal<string> = signal('');
@@ -62,5 +63,10 @@ export class App {
     const { error } = await client.auth.signOut({ scope: 'local' });
     if (error) this.signOutError.set('Could not sign out. Please try again.');
     else await this.router.navigateByUrl('/login');
+  }
+
+  protected openNotification(articleId: number, read: boolean): void {
+    if (!read) this.store.dispatch(notificationActions.markRead({ articleId }));
+    this.panel.set(null);
   }
 }

@@ -16,7 +16,7 @@ export const notificationActions = createActionGroup({
   events: {
     Sync: props<{ userId: string | null }>(),
     Refresh: emptyProps(),
-    'Mark read': emptyProps(),
+    'Mark read': props<{ articleId: number | null }>(),
     Loaded: props<{ inbox: Inbox }>(),
   },
 });

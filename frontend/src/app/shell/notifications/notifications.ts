@@ -15,7 +15,7 @@ export class Notifications {
   constructor() {
     this.store.dispatch(notificationActions.refresh());
   }
-  protected markRead(): void {
-    this.store.dispatch(notificationActions.markRead());
+  protected markRead(articleId: number | null = null): void {
+    this.store.dispatch(notificationActions.markRead({ articleId }));
   }
 }
