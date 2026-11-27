@@ -42,7 +42,11 @@ import { Auth } from './auth/auth';
                 @if (panel() === 'account') {
                   <div class="menu-panel">
                     <a class="menu-link" routerLink="/profile" (click)="panel.set(null)">Profile</a>
+                    <a class="menu-link" routerLink="/liked-posts" (click)="panel.set(null)">Liked posts</a>
                     <a class="menu-link" routerLink="/notifications" (click)="panel.set(null)">Notifications</a>
+                    @if (auth.session()?.user?.app_metadata?.['app_role'] === 'Admin') {
+                      <a class="menu-link" routerLink="/admin" (click)="panel.set(null)">Administration</a>
+                    }
                     <button class="menu-link" (click)="signOut()">Sign out</button>
                   </div>
                 }
@@ -70,7 +74,7 @@ export class App {
 
   constructor() {
     effect(() => {
-      if (!this.auth.session() && ['/', '/profile', '/notifications', '/admin'].includes(this.router.url)) {
+      if (!this.auth.session() && ['/', '/profile', '/liked-posts', '/notifications', '/admin'].includes(this.router.url)) {
         void this.auth.ready.then(() => {
           if (!this.auth.session()) void this.router.navigateByUrl('/login');
         });

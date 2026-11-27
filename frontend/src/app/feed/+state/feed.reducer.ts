@@ -14,4 +14,10 @@ export const feedReducer = createReducer(
     loading: false, error: '', nextCursor: page.nextCursor,
   })),
   on(feedActions.failed, (state, { message }) => ({ ...state, loading: false, error: message })),
+  on(feedActions.likeSaved, (state, { id, liked, likedOnly }) => ({
+    ...state,
+    items: likedOnly && !liked
+      ? state.items.filter(article => article.id !== id)
+      : state.items.map(article => article.id === id ? { ...article, liked } : article),
+  })),
 );

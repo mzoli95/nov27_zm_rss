@@ -34,6 +34,10 @@ returning id, email, raw_app_meta_data ->> 'app_role' as app_role;
 
 Sign in as each account and open `/admin`. The backend checks the protected role through the Supabase Auth API. [Supabase user metadata and authorization](https://supabase.com/docs/guides/auth/managing-user-data)
 
+After bootstrapping the first administrator, add a Supabase `sb_secret_...` key as `Supabase.SecretKey` in the ignored backend local settings, or set `Supabase__SecretKey` in the backend environment. Restart the backend. In **Administration → User roles**, enter the target user's Supabase UUID and choose `User` or `Admin`. The backend sends the update to Supabase. Keep this key out of frontend configuration and Git.
+
+Users can like articles in the feed and open **Liked posts** from the account menu. Likes are stored per account in SQLite.
+
 ## What the app will do
 
 - Browse an English-language news feed by topic and set alerts using tags, keywords or exact phrases. Choose which eligible news sources a rule watches.

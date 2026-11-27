@@ -9,6 +9,7 @@ export const routes: Routes = [
   { path: 'update-password', data: { mode: 'update' }, loadComponent: loadAuth },
   { path: '', canActivate: [signedIn], loadComponent: () => import('./feed/feed').then(m => m.Feed) },
   { path: 'profile', canActivate: [signedIn], loadComponent: () => import('./shell/profile').then(m => m.Profile) },
+  { path: 'liked-posts', canActivate: [signedIn], data: { liked: true }, loadComponent: () => import('./feed/feed').then(m => m.Feed) },
   { path: 'notifications', canActivate: [signedIn], loadComponent: () => import('./shell/notifications').then(m => m.Notifications) },
   { path: 'admin', canActivate: [signedIn, adminOnly], loadComponent: () => import('./admin/admin').then(m => m.Admin) },
   { path: '**', redirectTo: '' },
