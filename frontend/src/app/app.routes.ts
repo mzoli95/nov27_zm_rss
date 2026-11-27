@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthMode, adminOnly, signedIn } from './auth/auth';
-import type { AuthPage } from './auth/auth-page';
+import type { AuthPage } from './auth/auth-page/auth-page';
 import { provideEffects } from '@ngrx/effects';
 import { provideState } from '@ngrx/store';
 import { adminReducer } from './admin/+state/admin.reducer';
@@ -12,7 +12,7 @@ import { profileReducer } from './shell/+state/profile.reducer';
 import { manageDeliveryChannels, manageDeliveryPreferences } from './shell/+state/delivery.effects';
 import { deliveryAdmin, deliveryPrefs } from './shell/+state/delivery.reducer';
 
-const loadAuth = (): Promise<typeof AuthPage> => import('./auth/auth-page').then((m) => m.AuthPage);
+const loadAuth = (): Promise<typeof AuthPage> => import('./auth/auth-page/auth-page').then((m) => m.AuthPage);
 export const routes: Routes = [
   { path: 'login', data: { mode: AuthMode.Login }, loadComponent: loadAuth },
   { path: 'register', data: { mode: AuthMode.Register }, loadComponent: loadAuth },
@@ -21,7 +21,7 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [signedIn],
-    loadComponent: () => import('./feed/feed').then((m) => m.Feed),
+    loadComponent: () => import('./feed/feed/feed').then((m) => m.Feed),
   },
   {
     path: 'profile',
@@ -31,18 +31,18 @@ export const routes: Routes = [
       provideState('deliveryPrefs', deliveryPrefs),
       provideEffects({ loadProfile, saveProfile, manageDeliveryPreferences }),
     ],
-    loadComponent: () => import('./shell/profile').then((m) => m.Profile),
+    loadComponent: () => import('./shell/profile/profile').then((m) => m.Profile),
   },
   {
     path: 'liked-posts',
     canActivate: [signedIn],
     data: { liked: true },
-    loadComponent: () => import('./feed/feed').then((m) => m.Feed),
+    loadComponent: () => import('./feed/feed/feed').then((m) => m.Feed),
   },
   {
     path: 'notifications',
     canActivate: [signedIn],
-    loadComponent: () => import('./shell/notifications').then((m) => m.Notifications),
+    loadComponent: () => import('./shell/notifications/notifications').then((m) => m.Notifications),
   },
   {
     path: 'admin',
@@ -53,7 +53,7 @@ export const routes: Routes = [
       provideState('deliveryAdmin', deliveryAdmin),
       provideEffects({ loadUsers, saveRole, manageSources, manageDeliveryChannels }),
     ],
-    loadComponent: () => import('./admin/admin').then((m) => m.Admin),
+    loadComponent: () => import('./admin/admin/admin').then((m) => m.Admin),
   },
   { path: '**', redirectTo: '' },
 ];

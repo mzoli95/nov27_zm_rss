@@ -24,7 +24,7 @@
 - Use standalone components, lazy-loaded feature routes and cursor-based feed pagination. Keep admin code behind its own route. Use accessible forms, loading and error states, and a keyboard-accessible way to load more feed items.
 - Use Tailwind CSS for styling. Design mobile-first responsive screens with clear navigation, readable forms, keyboard focus and touch-friendly controls. Verify user and admin flows on narrow and wide viewports.
 - Use Angular Material paginator for numbered lists. Keep cursor-based news feeds scrollable.
-- Keep Angular templates in sibling HTML files. Use Tailwind utilities in templates and separate CSS files for custom styles.
+- Give each Angular component its own folder inside its feature, with its TypeScript, HTML and any custom CSS together. Keep feature-wide NgRx files in the parent feature?s +state/ directory. Use Tailwind utilities in templates.
 - Reuse the Tailwind theme tokens in frontend/src/styles.css. Use ink (#11243b), muted (#4b6179), primary (#1759b0), primary-hover (#12468b), page (#f4f8fe), line (#d7e3f2), and tint (#e4efff).
 - Start each new implementation branch from the latest remote main and send it for review.
 - Use NgRx for shared feature state. Place actions, effects, reducers and selectors in the feature's `+state/` folder. Keep transient form and component state local. Effects coordinate I/O, reducers stay pure, and selectors derive view data.
@@ -32,6 +32,8 @@
 - Prefer the async pipe or signals for view bindings. Use `takeUntilDestroyed` for imperative subscriptions. Stop SignalR on logout, remove handlers when the owner is disposed, and avoid multiple connections per session.
 
 ## ASP.NET Core and SQLite
+
+- Organize each backend feature by responsibility. Put HTTP handlers in Controllers, application logic in Services, data contracts in Models, enums in Enums, and persistence and external integrations in Infrastructure. Add folders as needed.
 
 - Start with the latest stable .NET 11 SDK and compatible EF Core SQLite provider. Pin versions after checking the toolchain. Use ASP.NET Core built-in authorization, hosted services and typed HTTP clients.
 - Keep SQLite normalized. Use separate relations for users, topics, sources, mappings, rules, channel preferences and deliveries. Use migrations, foreign keys, explicit uniqueness constraints and indexes for real query paths.

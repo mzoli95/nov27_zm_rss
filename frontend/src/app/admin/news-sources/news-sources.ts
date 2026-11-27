@@ -19,9 +19,9 @@ import {
   SourceKind,
   SourceTopic,
   sourcesActions,
-} from './+state/sources.actions';
-import type { SourcesState } from './+state/sources.reducer';
-import { selectSources } from './+state/sources.selectors';
+} from '../+state/sources.actions';
+import type { SourcesState } from '../+state/sources.reducer';
+import { selectSources } from '../+state/sources.selectors';
 
 type SourceFields = Omit<SourceInput, 'topics'>;
 const empty: SourceFields = { name: '', url: '', kind: SourceKind.Rss };

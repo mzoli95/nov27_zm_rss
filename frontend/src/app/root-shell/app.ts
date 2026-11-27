@@ -1,10 +1,10 @@
 import { Component, Signal, WritableSignal, effect, inject, signal } from '@angular/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { Auth } from './auth/auth';
+import { Auth } from '../auth/auth';
 import { Store } from '@ngrx/store';
-import { Inbox, notificationActions } from './shell/+state/notifications.actions';
-import { selectInbox } from './shell/+state/notifications.selectors';
+import { Inbox, notificationActions } from '../shell/+state/notifications.actions';
+import { selectInbox } from '../shell/+state/notifications.selectors';
 
 enum HeaderPanel {
   Account,

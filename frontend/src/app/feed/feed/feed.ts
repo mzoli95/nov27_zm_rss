@@ -12,10 +12,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FieldTree, FormField, form } from '@angular/forms/signals';
 import { Store } from '@ngrx/store';
-import { Article, feedActions, FeedQuery, FeedSort } from './+state/feed.actions';
-import type { FeedState } from './+state/feed.reducer';
-import { selectFeed } from './+state/feed.selectors';
-import { articleImage } from './article-image';
+import { Article, feedActions, FeedQuery, FeedSort } from '../+state/feed.actions';
+import type { FeedState } from '../+state/feed.reducer';
+import { selectFeed } from '../+state/feed.selectors';
+import { articleImage } from '../article-image';
 
 @Component({
   imports: [DatePipe, FormField],

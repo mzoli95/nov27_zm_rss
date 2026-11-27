@@ -2,10 +2,10 @@ import { Component, Signal, WritableSignal, inject, signal } from '@angular/core
 import { FieldTree, FormField, form, maxLength } from '@angular/forms/signals';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { Store } from '@ngrx/store';
-import { AppRole, Auth } from '../auth/auth';
-import { AdminUser, adminActions } from './+state/admin.actions';
-import type { AdminState } from './+state/admin.reducer';
-import { selectAdmin } from './+state/admin.selectors';
+import { AppRole, Auth } from '../../auth/auth';
+import { AdminUser, adminActions } from '../+state/admin.actions';
+import type { AdminState } from '../+state/admin.reducer';
+import { selectAdmin } from '../+state/admin.selectors';
 
 interface SearchFields {
   email: string;

@@ -1,6 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
-import { App } from './app/app';
+import { App } from './app/root-shell/app';
 import { APP_CONFIG, AppConfig } from './app/auth/auth';
 
 async function start(): Promise<void> {

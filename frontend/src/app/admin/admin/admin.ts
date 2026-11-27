@@ -1,10 +1,10 @@
 import { Component, WritableSignal, signal } from '@angular/core';
-import { AdminUsers } from './admin-users';
-import { NewsSources } from './news-sources';
-import { AdminChannels } from './admin-channels';
+import { AdminUsers } from '../admin-users/admin-users';
+import { NewsSources } from '../news-sources/news-sources';
+import { AdminChannels } from '../admin-channels/admin-channels';
 
-import { MessageTemplates } from './message-templates';
-import { JobSchedules } from './job-schedules';
+import { MessageTemplates } from '../message-templates/message-templates';
+import { JobSchedules } from '../job-schedules/job-schedules';
 
 enum AdminTab {
   Users = 'Users',
