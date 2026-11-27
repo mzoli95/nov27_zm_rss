@@ -33,6 +33,7 @@
                     [href]="item.url"
                     target="_blank"
                     rel="noopener noreferrer"
+                    (click)="openNotification(item.id, item.read)"
                     >{{ item.title }}</a
                   >
                 } @empty {
@@ -65,6 +66,9 @@
             </button>
             @if (panel() === HeaderPanel.Account) {
               <div class="menu-panel">
+                <p class="mb-1 break-all border-b border-line px-3 py-2 text-sm text-muted">
+                  {{ email() }}
+                </p>
                 <a class="menu-link" routerLink="/profile" (click)="panel.set(null)">Profile</a>
                 <a class="menu-link" routerLink="/liked-posts" (click)="panel.set(null)"
                   >Liked posts</a

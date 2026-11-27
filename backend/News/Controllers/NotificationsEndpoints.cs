@@ -21,10 +21,11 @@ public static class NotificationsEndpoints
         });
     }
 
-    public static async Task<IResult> MarkRead(FeedDb db, ClaimsPrincipal actor, CancellationToken token)
+    public static async Task<IResult> MarkRead(FeedDb db, ClaimsPrincipal actor, int? articleId, CancellationToken token)
     {
         Guid id = Guid.Parse(actor.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await db.ArticleAlerts.Where(alert => alert.UserId == id && !alert.Read)
+        await db.ArticleAlerts.Where(alert => alert.UserId == id && !alert.Read &&
+                (articleId == null || alert.ArticleId == articleId))
             .ExecuteUpdateAsync(update => update.SetProperty(alert => alert.Read, true), token);
         return Results.NoContent();
     }

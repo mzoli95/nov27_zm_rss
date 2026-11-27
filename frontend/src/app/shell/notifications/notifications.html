@@ -15,6 +15,7 @@
         [href]="item.url"
         target="_blank"
         rel="noopener noreferrer"
+        (click)="!item.read && markRead(item.id)"
         class="font-medium text-primary hover:underline"
         >{{ item.title }}</a
       >
