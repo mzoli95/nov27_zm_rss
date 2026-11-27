@@ -1,0 +1,88 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 3626 >>
+stream
+0.1 0.18 0.27 rg
+BT /F2 26 Tf 45 789 Td (World Event Alerts) Tj ET
+BT /F1 11 Tf 45 767 Td (Product and architecture brief | November 2026) Tj ET
+BT /F2 14 Tf 45 728 Td (What users can do) Tj ET
+BT /F1 11 Tf 45 707 Td (Browse a growing English-language news feed by topic and tag.) Tj ET
+BT /F1 11 Tf 45 690 Td (Create alerts using keywords, phrases and selected news sources.) Tj ET
+BT /F1 11 Tf 45 673 Td (Receive in-app, email and Slack notifications and manage preferences.) Tj ET
+BT /F1 11 Tf 45 656 Td (Sign up, verify email, reset a password and delete an account.) Tj ET
+BT /F2 14 Tf 45 624 Td (What administrators can do) Tj ET
+BT /F1 11 Tf 45 603 Td (Manage users and rules, connect approved RSS sources, and adjust polling.) Tj ET
+BT /F1 11 Tf 45 586 Td (Configure supported delivery channels and switch them on or off.) Tj ET
+BT /F1 11 Tf 45 569 Td (Inspect source runs and delivery outcomes.) Tj ET
+BT /F2 14 Tf 45 530 Td (Architecture) Tj ET
+0.9 0.95 1 rg 45 458 205 46 re f 0.1 0.18 0.27 rg
+BT /F2 11 Tf 54 486 Td (Angular 22 + NgRx) Tj ET
+BT /F1 8 Tf 54 468 Td (Feed, rules, inbox and lazy-loaded admin) Tj ET
+0.9 0.95 1 rg 343 458 207 46 re f 0.1 0.18 0.27 rg
+BT /F2 11 Tf 352 486 Td (Supabase Auth) Tj ET
+BT /F1 8 Tf 352 468 Td (Identity, email verification and recovery) Tj ET
+0.9 0.95 1 rg 45 364 505 54 re f 0.1 0.18 0.27 rg
+BT /F2 11 Tf 54 400 Td (ASP.NET Core / .NET 11) Tj ET
+BT /F1 8 Tf 54 374 Td (HTTP API, scheduled RSS jobs, rule matching and SignalR) Tj ET
+0.9 0.95 1 rg 45 270 150 46 re f 0.1 0.18 0.27 rg
+BT /F2 11 Tf 54 298 Td (Approved RSS feeds) Tj ET
+BT /F1 8 Tf 54 280 Td (BBC World is the first candidate) Tj ET
+0.9 0.95 1 rg 223 270 150 46 re f 0.1 0.18 0.27 rg
+BT /F2 11 Tf 232 298 Td (EF Core + SQLite) Tj ET
+BT /F1 8 Tf 232 280 Td (Rules, articles, inbox and deliveries) Tj ET
+0.9 0.95 1 rg 400 270 150 46 re f 0.1 0.18 0.27 rg
+BT /F2 11 Tf 409 298 Td (Notification sender) Tj ET
+BT /F1 8 Tf 409 280 Td (Shared delivery interface) Tj ET
+0.22 0.36 0.5 RG 250 481 m 343 481 l S 335.79642318117857 484.4797242728898 m 343 481 l 335.79642318117857 477.5202757271102 l S
+0.22 0.36 0.5 RG 146 458 m 146 418 l S 149.47972427288985 425.20357681882143 m 146 418 l 142.52027572711015 425.20357681882143 l S
+0.22 0.36 0.5 RG 195 418 m 352 458 l S 344.1603113926942 459.59351264208357 m 352 458 l 345.8785300801851 452.8495042936819 l S
+0.22 0.36 0.5 RG 120 316 m 120 364 l S 116.52027572711016 356.79642318117857 m 120 364 l 123.47972427288984 356.79642318117857 l S
+0.22 0.36 0.5 RG 298 364 m 298 316 l S 301.4797242728898 323.20357681882143 m 298 316 l 294.5202757271102 323.20357681882143 l S
+0.22 0.36 0.5 RG 475 364 m 475 316 l S 478.4797242728898 323.20357681882143 m 475 316 l 471.5202757271102 323.20357681882143 l S
+BT /F1 10 Tf 45 235 Td (The backend stores notifications before SignalR signals the browser.) Tj ET
+BT /F1 10 Tf 45 219 Td (Users who were offline see saved updates when they next open the app.) Tj ET
+BT /F2 14 Tf 45 183 Td (Planned extensions) Tj ET
+BT /F1 11 Tf 45 162 Td (Optional BTC-USD target price alerts with a current sampled price and timestamp.) Tj ET
+BT /F1 11 Tf 45 145 Td (Additional stock data and direct earthquake feeds can follow through adapters.) Tj ET
+BT /F2 10 Tf 45 93 Td (See PLAN.md for milestones and verification criteria.) Tj ET
+
+0.9 0.95 1 rg 383 209 84 34 re f 479 209 84 34 re f
+0.1 0.18 0.27 rg
+BT /F2 9 Tf 395 222 Td (Email adapter) Tj ET
+BT /F2 9 Tf 491 222 Td (Slack adapter) Tj ET
+0.22 0.36 0.5 RG
+475 270 m 475 255 l 425 255 l 425 243 l S
+475 255 m 521 255 l 521 243 l S
+421 249 m 425 243 l 429 249 l S
+517 249 m 521 243 l 525 249 l S
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+4073
+%%EOF
