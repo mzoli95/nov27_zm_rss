@@ -26,7 +26,7 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Import a live feed and replay a deterministic fixture twice. Verify deduplication, silent first import, topic filtering and loading the next page.
 - **Human review:** Review source configuration, feed UX and duplicate prevention.
 - **Commit:** `feat: import and browse RSS articles`
-- **Status:** Ready for review. Includes profile preferences, source assignments and basic in-app notifications. Live BBC and USGS import passed. Scheduled import is opt-in pending permitted-use review.
+- **Status:** Ready for review. Includes profile preferences, source assignments and basic in-app notifications. Live BBC and USGS import passed. Scheduled import is configurable. Production reuse terms still require project-owner review.
 
 ## 4. Alert rules and delivery
 
@@ -34,20 +34,20 @@ After each milestone, run the relevant checks and record the commands or manual 
 - **Checks:** Test matching and nonmatching stories, repeated ingestion, isolated channel failures and ambiguous delivery. Record real receipt separately from delivery records.
 - **Human review:** Review rule semantics, preference defaults and adapter boundaries.
 - **Commit:** `feat: match alerts and deliver notifications`
-- **Status:** Adapter and queue workflow ready for review. Live email and Slack receipt require provider credentials and a matching Slack workspace account.
+- **Status:** The importer and digest worker passed a fixture with isolated sender substitutes. SMTP reported acceptance for a live attempt and a Slack test showed an unread badge. Receipt of the same RSS match in both real destinations is still unverified.
 
 ## 5. Administration and realtime
 
 - **Scope:** Complete user and rule administration, supported channel configuration, global channel switches, SignalR updates and self-service account deletion.
 - **Checks:** Verify online and offline channel changes, authorization boundaries, retained preferences and delivery suppression after deletion.
 - **Human review:** Review administrator workflows, live status and deletion behavior.
-- **Commit:** `feat: complete administration and realtime updates`
+- **Status:** Admin role assignment, sources, schedules, channel configuration, templates and test sends shipped. SignalR, self-service deletion and full admin user and rule editing are deferred.
 
 ## 6. End-to-end verification and handoff
 
 - **Scope:** Document setup and the demo, collect evidence, preserve prompt history and agent handoffs, and review the repository contents.
 - **Checks:** Start from a clean checkout and reproduce the demo. Check tracked files for credentials, databases and logs. Record any unverified integrations.
 - **Human review:** Review the final demo, outstanding gaps and supporting evidence.
-- **Commit:** `docs: record verification and demo instructions`
+- **Status:** Fresh checkout and reproducible fixture verified. Live dual-channel receipt and the complete original prompt export remain open. The newest inbox read-receipt change was local during this review.
 
 Price alerts are optional and receive a separate review milestone if added after the news flow passes verification.

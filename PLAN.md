@@ -18,7 +18,7 @@ Build an English-language web app for following world news and receiving persona
 
 - Provide a separate lazy-loaded admin route. Enforce administrator access in the API. List, edit and delete user accounts and view, edit and pause their alert rules. Record admin changes without leaking credentials or unnecessary personal data.
 - On the Sources tab, add approved RSS endpoints, map sources to one or more topics, enable or pause them, change the polling interval, test a connection and run a source on demand. Show the last successful run, imported item count and a safe error summary. New formats can be added through adapters.
-- On the Channels tab, configure and test instances of supported delivery types, including Slack destinations, and enable or disable delivery globally. New channel types are implemented through a sender adapter. Show channel status changes to users through persistent in-app updates and SignalR.
+- On the Channels tab, configure and test instances of supported delivery types, including Slack destinations, and enable or disable delivery globally. New channel types are implemented through a sender adapter. The architecture proposes persistent channel status updates and SignalR. The current inbox refreshes by polling; SignalR is deferred.
 
 ## Architecture and behavior
 
@@ -60,11 +60,11 @@ See [MILESTONES.md](MILESTONES.md) for GitHub review checkpoints, validation ste
 | Status | Milestone | Evidence |
 | --- | --- | --- |
 | In progress | Scope and source validation | Initial plan and agent instructions. Save a live RSS response summary and verify permitted use. Record compatibility decisions. |
-| Pending | Workspace and accounts | Root Git repo, frontend/ and backend/, clean builds, migration, signup, recovery, and a denied admin call from a normal account. |
-| Ready for review | News feed and sources | Profile preferences, topic assignment, scheduled and manual imports, RSS images, and duplicate checks. Live BBC and USGS import checked. Confirm permitted use before enabling scheduled imports. |
-| Ready for review | Rules and delivery | Saved inbox and channel preferences, persisted email and Slack attempts, and independent outcomes verified with test providers. Confirm live receipt once credentials are available. |
-| Pending | Admin, realtime and deletion | Edit users and rules, configure and disable channels, verify online and offline views, and test self-deletion and denied cross-account access. |
-| Pending | Final review and handoff | Fresh checkout setup, reproducible end-to-end demo, evidence and milestone commits. Report unresolved checks and actual integration status. |
+| Implemented, verification partial | Workspace and accounts | Root Git repo, frontend/ and backend/, clean builds, migration, signup, recovery, and a denied admin call from a normal account. |
+| Implemented, verified | News feed and sources | Profile preferences, topic assignment, scheduled and manual imports, RSS images, and duplicate checks. Live BBC and USGS import checked. Confirm permitted use before enabling scheduled imports. |
+| Implemented, live verification partial | Rules and delivery | Saved inbox and channel preferences, persisted email and Slack attempts, and independent outcomes verified with test providers. Fixture verification passed. Live receipt of the same RSS alert through both providers is pending. |
+| Partial | Admin, realtime and deletion | Admin user listing and role assignment, source management, channel configuration and test sends shipped. SignalR, full user and rule administration, and self-service deletion remain deferred. |
+| Partial | Final review and handoff | Fresh checkout builds, live first import and deterministic matching and delivery checks passed. Live two-channel receipt and the complete prompt export remain open. |
 
 ## Optional extensions
 
