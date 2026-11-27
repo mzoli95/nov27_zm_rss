@@ -14,23 +14,23 @@ public sealed class SupabaseAuthentication(
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (!AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out var header) ||
+        if (!AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out AuthenticationHeaderValue? header) ||
             !header.Scheme.Equals("Bearer", StringComparison.OrdinalIgnoreCase) ||
             string.IsNullOrWhiteSpace(header.Parameter))
             return AuthenticateResult.NoResult();
 
         try
         {
-            var user = await services.GetRequiredService<SupabaseIdentity>()
+            SupabaseUser? user = await services.GetRequiredService<SupabaseIdentity>()
                 .VerifyAsync(header.Parameter, Context.RequestAborted);
             if (user is null || !Guid.TryParse(user.Id, out _) || user.EmailConfirmedAt is null)
                 return AuthenticateResult.Fail("A verified account is required.");
 
-            var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id) };
-            var role = user.AppMetadata?.AppRole == nameof(AppRole.Admin) ? AppRole.Admin : AppRole.User;
+            List<Claim> claims = [new(ClaimTypes.NameIdentifier, user.Id)];
+            AppRole role = user.AppMetadata?.AppRole == nameof(AppRole.Admin) ? AppRole.Admin : AppRole.User;
             claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
 
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, Scheme.Name));
+            ClaimsPrincipal principal = new(new ClaimsIdentity(claims, Scheme.Name));
             return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
         }
         catch (Exception error) when (error is HttpRequestException or System.Text.Json.JsonException ||

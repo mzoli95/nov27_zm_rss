@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-ink: #11243b;
@@ -11,16 +11,49 @@
 }
 
 @layer base {
-  body { @apply bg-page text-ink antialiased; }
-  a, button:not(:disabled), select { @apply cursor-pointer; }
-  :focus-visible { @apply outline-2 outline-offset-2 outline-primary; }
-  select, input:not([type="checkbox"]) {
+  body {
+    @apply bg-page text-ink antialiased;
+  }
+  a,
+  button:not(:disabled),
+  select {
+    @apply cursor-pointer;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  select,
+  input:not([type='checkbox']) {
     @apply mt-1 block w-full rounded-lg border border-line bg-white px-3 py-2 text-ink;
   }
 }
 
 @layer components {
-  .primary { @apply rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-hover disabled:opacity-50; }
-  .menu-panel { @apply absolute right-0 top-full z-10 mt-2 w-56 rounded-xl border border-line bg-white p-2 shadow-lg; }
-  .menu-link { @apply block w-full rounded-md px-3 py-2 text-left hover:bg-tint; }
+  .primary {
+    @apply rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-hover disabled:opacity-50;
+  }
+  .menu-panel {
+    @apply absolute right-0 top-full z-10 mt-2 w-56 rounded-xl border border-line bg-white p-2 shadow-lg;
+  }
+  .menu-link {
+    @apply block w-full rounded-md px-3 py-2 text-left hover:bg-tint;
+  }
+  .icon-bell {
+    @apply relative block mx-0.5 mb-1 h-4 w-4 rounded-t-full border-2;
+  }
+  .icon-bell::after {
+    @apply absolute left-1/2 top-full mt-0.5 h-1 w-1 -translate-x-1/2 rounded-full bg-current content-[''];
+  }
+  .icon-user {
+    @apply relative block size-5;
+  }
+  .icon-user::before {
+    @apply absolute left-1/2 top-0 size-2 -translate-x-1/2 rounded-full border-2 content-[''];
+  }
+  .icon-user::after {
+    @apply absolute inset-x-0 bottom-0 h-2.5 rounded-t-full border-2 content-[''];
+  }
+  .icon-chevron {
+    @apply mb-1 block size-2 rotate-45 border-b-2 border-r-2;
+  }
 }

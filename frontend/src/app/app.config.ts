@@ -5,7 +5,7 @@ import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { apiToken } from './auth/auth';
 import { routes } from './app.routes';
-import { loadFeed } from './feed/+state/feed.effects';
+import { loadFeed, saveLike } from './feed/+state/feed.effects';
 import { feedReducer } from './feed/+state/feed.reducer';
 
 export const appConfig: ApplicationConfig = {
@@ -13,6 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([apiToken])),
     provideStore({ feed: feedReducer }),
-    provideEffects({ loadFeed }),
+    provideEffects({ loadFeed, saveLike }),
   ],
 };

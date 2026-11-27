@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WorldEventAlerts.Auth;
 using WorldEventAlerts.Feed;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
 builder.Services.Configure<SupabaseSettings>(builder.Configuration.GetSection("Supabase"));
@@ -17,13 +17,13 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddDbContext<FeedDb>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("App")));
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    var database = scope.ServiceProvider.GetRequiredService<FeedDb>();
+    await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+    FeedDb database = scope.ServiceProvider.GetRequiredService<FeedDb>();
     await database.Database.MigrateAsync();
     if (app.Environment.IsDevelopment()) await DemoArticles.InitializeAsync(database);
 }
@@ -35,7 +35,7 @@ app.MapGet("/api/config", (Microsoft.Extensions.Options.IOptions<SupabaseSetting
         supabasePublishableKey = settings.Value.BrowserKey
     })).AllowAnonymous();
 
-var api = app.MapGroup("/api").RequireAuthorization();
+RouteGroupBuilder api = app.MapGroup("/api").RequireAuthorization();
 api.MapGet("/feed", FeedEndpoints.Read);
 api.MapPut("/feed/{id:int}/like", FeedEndpoints.SetLike);
 api.MapGet("/admin/access", () => Results.NoContent()).RequireAuthorization(nameof(AppRole.Admin));

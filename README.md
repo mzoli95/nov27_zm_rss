@@ -38,6 +38,8 @@ After bootstrapping the first administrator, add a Supabase `sb_secret_...` key 
 
 Users can like articles in the feed and open **Liked posts** from the account menu. Likes are stored per account in SQLite.
 
+From `frontend/`, run `npm run lint` for Angular and TypeScript lint checks and `npm run format:check` for Prettier. Use `npm run format` to apply the formatting.
+
 ## What the app will do
 
 - Browse an English-language news feed by topic and set alerts using tags, keywords or exact phrases. Choose which eligible news sources a rule watches.

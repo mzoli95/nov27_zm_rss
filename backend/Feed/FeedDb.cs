@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace WorldEventAlerts.Feed;
 
@@ -13,7 +14,7 @@ public sealed class FeedDb(DbContextOptions<FeedDb> options) : DbContext(options
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var likes = modelBuilder.Entity<ArticleLike>();
+        EntityTypeBuilder<ArticleLike> likes = modelBuilder.Entity<ArticleLike>();
         likes.HasKey(like => new { like.UserId, like.ArticleId });
         likes.HasOne<Article>().WithMany().HasForeignKey(like => like.ArticleId);
     }

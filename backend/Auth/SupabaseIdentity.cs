@@ -25,16 +25,16 @@ public sealed class SupabaseIdentity(HttpClient client, IOptions<SupabaseSetting
 {
     public async Task<SupabaseUser?> VerifyAsync(string token, CancellationToken cancellationToken)
     {
-        var config = settings.Value;
+        SupabaseSettings config = settings.Value;
         if (string.IsNullOrWhiteSpace(config.BrowserKey) ||
-            !Uri.TryCreate(config.Url, UriKind.Absolute, out var baseUri) ||
+            !Uri.TryCreate(config.Url, UriKind.Absolute, out Uri? baseUri) ||
             baseUri.Scheme != Uri.UriSchemeHttps)
             return null;
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseUri, "/auth/v1/user"));
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri(baseUri, "/auth/v1/user"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Headers.Add("apikey", config.BrowserKey);
-        using var response = await client.SendAsync(request, cancellationToken);
+        using HttpResponseMessage response = await client.SendAsync(request, cancellationToken);
         return response.IsSuccessStatusCode
             ? await response.Content.ReadFromJsonAsync<SupabaseUser>(cancellationToken)
             : null;

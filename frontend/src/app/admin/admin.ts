@@ -1,55 +1,68 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
+import { Component, Signal, WritableSignal, inject, signal } from '@angular/core';
+import { FieldTree, FormField, form, pattern, required } from '@angular/forms/signals';
+import { Store } from '@ngrx/store';
+import { AppRole } from '../auth/auth';
+import { adminActions } from './+state/admin.actions';
+import type { AdminState } from './+state/admin.reducer';
+import { selectAdmin } from './+state/admin.selectors';
+
+interface RoleFields {
+  userId: string;
+  role: AppRole;
+}
+
 @Component({
-  imports: [FormsModule],
+  imports: [FormField],
   template: `<h1 class="text-3xl font-bold">Administration</h1>
     <section class="mt-6 rounded-xl border border-line bg-white p-5">
       <h2 class="text-xl font-semibold">User roles</h2>
       <p class="mt-2 text-sm text-muted">Use the User UID from Supabase Authentication.</p>
-      <form #form="ngForm" (ngSubmit)="form.valid && save()" class="mt-4 grid gap-4 sm:grid-cols-3 sm:items-end">
-        <label>User UID
-          <input name="userId" [(ngModel)]="userId" required
-            pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}">
+      <form (submit)="save($event)" class="mt-4 grid gap-4 sm:grid-cols-3 sm:items-end">
+        <label
+          >User UID
+          <input [formField]="fields.userId" />
         </label>
-        <label>Role
-          <select name="role" [(ngModel)]="role"><option>User</option><option>Admin</option></select>
-        </label>
-        <button class="primary" [disabled]="!form.valid || saving()">Save role</button>
+        <div>
+          <label for="admin-role">Role</label>
+          <select id="admin-role" [formField]="fields.role">
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </div>
+        <button class="primary" [disabled]="fields().invalid() || state().saving">Save role</button>
       </form>
-      @if (feedback()) { <p class="mt-4" role="status">{{ feedback() }}</p> }
+      @if (state().message) {
+        <p class="mt-4" role="status">{{ state().message }}</p>
+      }
     </section>
     <div class="mt-6 grid gap-4 sm:grid-cols-2">
       @for (section of sections; track section) {
         <section class="rounded-xl border border-line bg-white p-5">
-          <h2 class="font-semibold">{{ section }}</h2><p class="mt-1 text-sm text-muted">Coming in a later milestone.</p>
+          <h2 class="font-semibold">{{ section }}</h2>
+          <p class="mt-1 text-sm text-muted">Coming in a later milestone.</p>
         </section>
       }
     </div>`,
 })
 export class Admin {
-  private readonly http = inject(HttpClient);
-  private readonly destroy = inject(DestroyRef);
-  protected readonly sections = ['Alert rules', 'News sources', 'Delivery channels'];
-  protected readonly feedback = signal('');
-  protected readonly saving = signal(false);
-  protected userId = '';
-  protected role = 'User';
+  private readonly store: Store = inject(Store);
+  protected readonly sections: readonly string[] = [
+    'Alert rules',
+    'News sources',
+    'Delivery channels',
+  ];
+  protected readonly roles: readonly AppRole[] = [AppRole.User, AppRole.Admin];
+  protected readonly state: Signal<AdminState> = this.store.selectSignal(selectAdmin);
+  private readonly model: WritableSignal<RoleFields> = signal({ userId: '', role: AppRole.User });
+  protected readonly fields: FieldTree<RoleFields> = form(this.model, (path) => {
+    required(path.userId);
+    pattern(path.userId, /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i);
+  });
 
-  protected save() {
-    if (this.saving()) return;
-    this.feedback.set('');
-    this.saving.set(true);
-    this.http.put<void>('/api/admin/users/' + encodeURIComponent(this.userId.trim()) + '/role', { role: this.role })
-      .pipe(takeUntilDestroyed(this.destroy))
-      .subscribe({
-        next: () => { this.feedback.set('Role updated.'); this.saving.set(false); },
-        error: (error: HttpErrorResponse) => {
-          this.feedback.set(error.error?.message ?? error.error?.detail ??
-            (error.status === 404 ? 'User not found.' : 'Could not update the role.'));
-          this.saving.set(false);
-        },
-      });
+  protected save(event: SubmitEvent): void {
+    event.preventDefault();
+    if (this.fields().invalid() || this.state().saving) return;
+    this.store.dispatch(adminActions.saveRole(this.model()));
   }
 }

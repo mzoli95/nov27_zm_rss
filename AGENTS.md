@@ -15,6 +15,7 @@
 - Handwritten methods accept at most four parameters, excluding a CancellationToken. Group related inputs into a typed request or options object when they belong together.
 - Aim for 150 lines or fewer per handwritten class, with a 200-line maximum. Split by responsibility. Apply these limits to handwritten code.
 - Prefer focused feature folders, explicit names, small diffs and consistent formatting. Keep dependencies pinned and introduce packages only when they simplify a real requirement.
+- Use explicit C# local types in preference to var. Use explicit TypeScript types for named fields, values, parameters and method return values, including void. Preserve contextual typing where an API supplies the callback type.
 - Design for bounded work. Page list queries, fetch each external source once per cycle, limit network waits and batches, and keep one app instance for the SQLite-based demo.
 
 ## Angular
@@ -25,12 +26,14 @@
 - Reuse the Tailwind theme tokens in frontend/src/styles.css. Use ink (#11243b), muted (#4b6179), primary (#1759b0), primary-hover (#12468b), page (#f4f8fe), line (#d7e3f2), and tint (#e4efff).
 - Start each new implementation branch from the latest remote main and send it for review.
 - Use NgRx for shared feature state. Place actions, effects, reducers and selectors in the feature's `+state/` folder. Keep transient form and component state local. Effects coordinate I/O, reducers stay pure, and selectors derive view data.
+- Use Signal Forms and modern Angular template control flow. Bind derived state through selector signals or computed signals. Compare typed enum values for finite UI states. Use icon components in templates and run ESLint and Prettier checks.
 - Prefer the async pipe or signals for view bindings. Use `takeUntilDestroyed` for imperative subscriptions. Stop SignalR on logout, remove handlers when the owner is disposed, and avoid multiple connections per session.
 
 ## ASP.NET Core and SQLite
 
 - Start with the latest stable .NET 11 SDK and compatible EF Core SQLite provider. Pin versions after checking the toolchain. Use ASP.NET Core built-in authorization, hosted services and typed HTTP clients.
 - Keep SQLite normalized. Use separate relations for users, topics, sources, mappings, rules, channel preferences and deliveries. Use migrations, foreign keys, explicit uniqueness constraints and indexes for real query paths.
+- Return early when required data is absent. Reuse the result of an existing lookup or query before considering an additional database round trip.
 - Choose dependency injection lifetimes based on how each service is used:
   - Scoped: Use for `DbContext` and services that share it within a request or background unit of work.
   - Transient: Use for lightweight, stateless services that can be created each time they are resolved.
