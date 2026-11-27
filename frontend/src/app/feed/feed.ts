@@ -15,6 +15,7 @@ import { Store } from '@ngrx/store';
 import { Article, feedActions, FeedQuery, FeedSort } from './+state/feed.actions';
 import type { FeedState } from './+state/feed.reducer';
 import { selectFeed } from './+state/feed.selectors';
+import { articleImage } from './article-image';
 
 @Component({
   imports: [DatePipe, FormField],
@@ -66,11 +67,19 @@ import { selectFeed } from './+state/feed.selectors';
         <article class="flex flex-col overflow-hidden rounded-xl border border-line bg-white">
           <div class="aspect-[16/7] bg-tint">
             @if (article.imageUrl) {
+              @let picture = imageFor(article.imageUrl);
               <img
-                [src]="article.imageUrl"
+                [attr.sizes]="
+                  picture.srcset ? '(max-width: 800px) calc(100vw - 2rem), 768px' : null
+                "
+                [attr.srcset]="picture.srcset"
+                [src]="picture.src"
                 alt=""
                 loading="lazy"
-                class="size-full object-cover"
+                decoding="async"
+                class="size-full"
+                [class.object-cover]="picture.srcset"
+                [class.object-scale-down]="!picture.srcset"
                 (error)="hideBrokenImage($event)"
               />
             }
@@ -155,6 +164,7 @@ import { selectFeed } from './+state/feed.selectors';
   `,
 })
 export class Feed {
+  protected readonly imageFor: typeof articleImage = articleImage;
   private readonly store: Store = inject(Store);
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
   private readonly router: Router = inject(Router);

@@ -35,10 +35,17 @@ public sealed class SlackSender(HttpClient http, ProviderSettings options) : INo
                 conversationId.GetString() is not string destination) return DeliveryStatus.Failed;
 
             using HttpRequestMessage post = CreateRequest(HttpMethod.Post, "chat.postMessage");
+            string heading = message.Articles.Count == 1 ? "1 new article matched your alerts" :
+                $"{message.Articles.Count} new articles matched your alerts";
+            List<object> blocks = [new { type = "header", text = new { type = "plain_text", text = heading } }];
+            blocks.AddRange(message.Articles.Select(article => new
+            {
+                type = "section", text = new { type = "mrkdwn", text = ArticleLink(article) }
+            }));
             post.Content = JsonContent.Create(new
             {
-                channel = destination, text = message.Title + "\n" + message.Url,
-                mrkdwn = false, unfurl_links = false, unfurl_media = false
+                channel = destination, text = heading, blocks,
+                unfurl_links = false, unfurl_media = false
             });
             sending = true;
             using HttpResponseMessage delivery = await http.SendAsync(post, token);
@@ -52,6 +59,14 @@ public sealed class SlackSender(HttpClient http, ProviderSettings options) : INo
         {
             return sending ? DeliveryStatus.Ambiguous : DeliveryStatus.Failed;
         }
+    }
+
+    private static string ArticleLink(DeliveryArticle article)
+    {
+        string url = article.Url.Replace("|", "%7C").Replace(">", "%3E").Replace("<", "%3C");
+        string title = article.Title[..Math.Min(article.Title.Length, 160)]
+            .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("|", "¦");
+        return $"<{url}|{title}>";
     }
 
     private HttpRequestMessage CreateRequest(HttpMethod method, string path)

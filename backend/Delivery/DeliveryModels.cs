@@ -11,7 +11,8 @@ public sealed record ChannelPreference(Guid UserId, string Channel, bool Enabled
 public sealed record ChannelState(string Channel, bool Enabled);
 public sealed record ChannelSettingsInput(bool Enabled);
 public sealed record ChannelPreferencesInput(string[] EnabledChannels);
-public sealed record DeliveryMessage(string Email, string Title, string Url);
+public sealed record DeliveryArticle(string Title, string Url);
+public sealed record DeliveryMessage(string Email, IReadOnlyList<DeliveryArticle> Articles);
 public sealed class DeliveryAttempt
 {
     public Guid UserId { get; init; }

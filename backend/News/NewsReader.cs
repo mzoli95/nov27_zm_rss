@@ -38,12 +38,16 @@ public static class NewsReader
         if (!DateTimeOffset.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset published))
             return null;
 
-        XElement? image = element.Descendants().FirstOrDefault(node =>
+        string? imageUrl = element.Descendants().Where(node =>
             node.Name.LocalName == "thumbnail" ||
             (node.Name.LocalName is "content" or "enclosure" &&
              ((string?)node.Attribute("medium") == "image" ||
-              ((string?)node.Attribute("type"))?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)));
-        string? imageUrl = WebUrl((string?)image?.Attribute("url"));
+              ((string?)node.Attribute("type"))?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)))
+            .Select(node => (Url: WebUrl((string?)node.Attribute("url")),
+                Width: int.TryParse((string?)node.Attribute("width"), out int width) ? width : 0))
+            .Where(candidate => candidate.Url is not null)
+            .OrderBy(candidate => candidate.Width >= 960 ? candidate.Width - 960 : 10_000 - candidate.Width)
+            .Select(candidate => candidate.Url).FirstOrDefault();
         string description = Value(element, "description") ?? Value(element, "summary") ?? "";
         return new NewsItem(url, title.Trim(), description.Trim(), imageUrl, published.UtcDateTime);
     }
@@ -64,7 +68,7 @@ public static class NewsReader
 
     public static string? WebUrl(string? value)
     {
-        if (!Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) ||
+        if (value?.Length > 2000 || !Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) ||
             uri.Scheme is not ("http" or "https") || uri.UserInfo.Length != 0) return null;
         return uri.AbsoluteUri;
     }

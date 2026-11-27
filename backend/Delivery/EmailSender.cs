@@ -22,25 +22,9 @@ public sealed class EmailSender(ProviderSettings options) : INotificationSender
         MimeMessage message = new();
         message.From.Add(new MailboxAddress(settings.FromName, sender.Address));
         message.To.Add(recipient);
-        message.Subject = "News alert: " + alert.Title.Replace("\r", " ").Replace("\n", " ");
-        string title = System.Net.WebUtility.HtmlEncode(alert.Title);
-        string url = System.Net.WebUtility.HtmlEncode(alert.Url);
-        BodyBuilder body = new()
-        {
-            TextBody = alert.Title + Environment.NewLine + alert.Url,
-            HtmlBody = $"""
-                <div style="background:#f4f8fe;padding:24px;font:16px Arial,sans-serif;color:#11243b">
-                  <div style="background:#fff;border:1px solid #d7e3f2;border-radius:14px;max-width:540px;margin:auto;padding:24px">
-                    <p style="color:#1759b0;font-weight:bold">World Event Alerts</p>
-                    <h1 style="font-size:22px;line-height:1.4">{title}</h1>
-                    <p>A news item matched your alert preferences.</p>
-                    <a href="{url}" style="display:inline-block;background:#1759b0;color:#fff;padding:12px 18px;border-radius:8px;text-decoration:none">Read article</a>
-                    <p style="font-size:13px;color:#4b6179">Manage email delivery in your World Event Alerts profile.</p>
-                  </div>
-                </div>
-                """
-        };
-        message.Body = body.ToMessageBody();
+        message.Subject = alert.Articles.Count == 1 ? "World Event Alerts: 1 new article" :
+            $"World Event Alerts: {alert.Articles.Count} new articles";
+        message.Body = BuildBody(alert.Articles).ToMessageBody();
 
         using SmtpClient smtp = new() { Timeout = 10_000 };
         bool sending = false;
@@ -63,5 +47,30 @@ public sealed class EmailSender(ProviderSettings options) : INotificationSender
         {
             return sending ? DeliveryStatus.Ambiguous : DeliveryStatus.Failed;
         }
+    }
+
+    internal static BodyBuilder BuildBody(IReadOnlyList<DeliveryArticle> articles)
+    {
+        string links = string.Concat(articles.Select(article =>
+            $"""
+            <li style="margin:0 0 12px">
+              <a style="font-weight:bold;color:#1759b0" href="{System.Net.WebUtility.HtmlEncode(article.Url)}">{System.Net.WebUtility.HtmlEncode(article.Title)}</a>
+            </li>
+            """));
+        return new BodyBuilder
+        {
+            TextBody = string.Join(Environment.NewLine + Environment.NewLine,
+                articles.Select(article => article.Title + Environment.NewLine + article.Url)),
+            HtmlBody = $"""
+                <div style="background:#f4f8fe;padding:24px;font:16px Arial,sans-serif;color:#11243b">
+                  <div style="background:#fff;border:1px solid #d7e3f2;border-radius:14px;max-width:540px;margin:auto;padding:24px">
+                    <p style="color:#1759b0;font-weight:bold">World Event Alerts</p>
+                    <h1 style="font-size:22px;line-height:1.4">New articles matching your alerts</h1>
+                    <ul style="padding-left:24px">{links}</ul>
+                    <p style="font-size:13px;color:#4b6179">Manage email delivery in your World Event Alerts profile.</p>
+                  </div>
+                </div>
+                """
+        };
     }
 }
