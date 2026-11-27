@@ -1,6 +1,15 @@
 # World Event Alerts
 
-World Event Alerts is a planned web app for following world news and receiving alerts about topics you care about. The repository currently contains the product plan and architecture. The application shell and authentication are the next milestone.
+World Event Alerts is a web app in development for following world news and receiving personalized alerts. The application shell includes authentication, a protected demo feed and an admin route. Live news ingestion and alert delivery are later milestones.
+
+## Run the application shell
+
+1. Install the .NET 11 SDK and Node.js 24.15 or newer in the Node 24 release line.
+2. Copy `backend/appsettings.Local.example.json` to `backend/appsettings.Local.json`. Set your Supabase project URL and **publishable key**. Enable email/password registration and email confirmation. Allow `http://localhost:4200/` and `http://localhost:4200/update-password` as redirect URLs. For admin access, add the verified Supabase user ID to `AdminUserIds`.
+3. From `backend/`, set `ASPNETCORE_ENVIRONMENT=Development` and run `dotnet run --urls http://localhost:5090`. The API migrates SQLite on startup and seeds sample articles in Development.
+4. From `frontend/`, run `npm ci` and `npm start -- --proxy-config proxy.conf.json`. Open `http://localhost:4200`.
+
+Use the Supabase publishable key in this configuration. The API exposes it to Angular. The local configuration file, database and logs are excluded from Git.
 
 ## What the app will do
 
