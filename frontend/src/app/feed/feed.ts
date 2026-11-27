@@ -7,6 +7,7 @@ import { selectFeed } from './+state/feed.selectors';
 
 @Component({
   imports: [DatePipe, FormsModule],
+  host: { class: 'mx-auto block max-w-3xl' },
   template: `
     <h1 class="text-3xl font-bold sm:text-4xl">News feed</h1>
     <form class="my-6 grid gap-3 rounded-xl border border-line bg-white p-4 sm:grid-cols-4 sm:items-end"
@@ -24,7 +25,7 @@ import { selectFeed } from './+state/feed.selectors';
     @if (state().error) {
       <p role="alert" class="mb-4">{{ state().error }} <button class="underline" (click)="load(state().nextCursor)">Retry</button></p>
     }
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-5" aria-label="News articles">
       @for (article of state().items; track article.id) {
         <article class="flex flex-col overflow-hidden rounded-xl border border-line bg-white">
           @if (article.imageUrl) {

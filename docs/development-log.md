@@ -59,3 +59,10 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Added the AppRole enum and switched the Admin policy to trusted Supabase app metadata. Documented the two test identities and the Supabase dashboard and SQL steps.
 - **Decision and origin:** The user selected the role names and test identities. The assistant chose a User default and protected role metadata. The application branch is a prerequisite and had yet to merge into main.
 - **Verification:** The .NET 11 build passed with zero warnings and errors. Hosted role assignment, account creation and signed-in authorization checks are pending privileged Supabase access.
+
+## Single-column news feed
+
+- **User request:** Assign Admin to the account created in Supabase. Change the landing feed to one article card per row with search, filters and sorting above the scrolling list.
+- **Assistant response:** Centered the feed and stacked article cards in one column. Preserved the filters and incremental loading. Checked for administrative Supabase credentials, which were unavailable in the session.
+- **Decision and origin:** The single-column layout and controls came from the user. The assistant selected a readable maximum width and retained the existing pagination.
+- **Verification:** Angular build passed. Edge confirmed that desktop article cards share the same width and horizontal position, appear in successive rows, and still load the next page on scroll with a mocked API.
