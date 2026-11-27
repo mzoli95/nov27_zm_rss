@@ -79,3 +79,24 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Added user-scoped SQLite likes, image fallbacks and a guarded admin form that applies roles by Supabase UID through a server-side client. Hosted bootstrap still requires privileged project access.
 - **Decision and origin:** The user requested the feed and admin capabilities. The assistant chose idempotent like writes, a single reusable feed route component, and a server-side secret with a self-demotion safeguard.
 - **Verification:** Angular build passed. The Release backend was built while the running Debug backend retained its files. A temporary SQLite check passed migration, duplicate suppression, account isolation and unlike. A mocked Edge check passed image fallback, like, Liked posts and unlike. Live Supabase role writes remain unverified.
+
+## PR review feedback
+
+- **User request:** Review the current main and apply explicit typing, early exits, Signal Forms, signal-backed templates, enum comparisons and effects. Keep Administration in the account menu for admins. Add linting, formatting, icons, loading skeletons, demo images and a favicon.
+- **Assistant response:** Branched from the fetched main at `e867a63`. Applied the feedback across the app, added local illustrations and a favicon, and recorded the conventions in AGENTS.md.
+- **Decision and origin:** The user identified the changes during PR review. The assistant chose Angular ESLint and Prettier because TSLint is deprecated, used HTML/CSS icons after the candidate icon package rejected Angular 22, and kept password-bearing calls in the Auth service. The feed returns an empty page after one query. Live RSS thumbnail extraction remains part of RSS ingestion.
+- **Verification:** Angular build, ESLint, Prettier and .NET Release build passed. A temporary SQLite check passed image fixture coverage and like isolation. Edge with mocked API responses verified the skeleton, loaded image, source without an image, pagination, user/admin menu visibility and admin role form. The first admin form probe found that its wrapped label had an imprecise accessible name. Added an explicit label association and reran the check successfully.
+
+## Form validation and icon follow-up
+
+- **User request:** Keep the same review branch. Match the Supabase six-character minimum, validate email format with a regex, add a password visibility control, improve the header icons, and render likes as an icon-only toggle.
+- **Assistant response:** Added accessible field errors for auth and admin role forms, updated the password rule, and added consistent CSS icons for password visibility, notifications, account and like states.
+- **Decision and origin:** The user specified the password minimum and icon behavior. The assistant chose to show validation errors after a field is touched or the form is submitted.
+- **Verification:** Angular build, ESLint and Prettier passed. Edge with mocked API responses verified that invalid email, a five-character password and an unchecked privacy notice block registration, while six characters pass the client check. Also verified both password visibility states, malformed admin UUID feedback and the outline-to-filled heart transition.
+
+## Icon library follow-up
+
+- **User request:** Replace the custom SVG icons with a free library, improve the account chevrons and keep the same review branch.
+- **Assistant response:** Replaced the SVG masks and CSS-drawn chevron with the locally bundled Bootstrap Icons font. Kept accessible names and selected states.
+- **Decision and origin:** The user requested library icons and gave the account chevrons as an example. The assistant chose the MIT-licensed Bootstrap Icons font.
+- **Verification:** Edge confirmed font loading, both chevron states, password visibility and the heart transition.

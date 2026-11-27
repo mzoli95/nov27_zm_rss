@@ -11,6 +11,8 @@ World Event Alerts is a web app in development for following world news and rece
 
 Use the Supabase publishable key in this configuration. The API exposes it to Angular. The local configuration file, database and logs are excluded from Git.
 
+The authentication forms require passwords of at least six characters. Keep the Supabase project's minimum password length aligned with this setting.
+
 ## Supabase roles and review accounts
 
 Verified accounts default to `User`. The backend uses the protected Supabase `app_metadata.app_role` field to grant `Admin`. The previous local `AdminUserIds` setting is obsolete.
@@ -37,6 +39,8 @@ Sign in as each account and open `/admin`. The backend checks the protected role
 After bootstrapping the first administrator, add a Supabase `sb_secret_...` key as `Supabase.SecretKey` in the ignored backend local settings, or set `Supabase__SecretKey` in the backend environment. Restart the backend. In **Administration → User roles**, enter the target user's Supabase UUID and choose `User` or `Admin`. The backend sends the update to Supabase. Keep this key out of frontend configuration and Git.
 
 Users can like articles in the feed and open **Liked posts** from the account menu. Likes are stored per account in SQLite.
+
+From `frontend/`, run `npm run lint` for Angular and TypeScript lint checks and `npm run format:check` for Prettier. Use `npm run format` to apply the formatting.
 
 ## What the app will do
 

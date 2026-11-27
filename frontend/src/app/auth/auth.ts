@@ -1,4 +1,12 @@
-import { Injectable, InjectionToken, inject, signal } from '@angular/core';
+import {
+  Injectable,
+  InjectionToken,
+  Signal,
+  WritableSignal,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { HttpInterceptorFn, HttpClient } from '@angular/common/http';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
@@ -10,19 +18,82 @@ export interface AppConfig {
 }
 export const APP_CONFIG = new InjectionToken<AppConfig>('app configuration');
 export const PRIVACY_VERSION = '2026-11-27';
+export enum AuthMode {
+  Login = 'login',
+  Register = 'register',
+  Forgot = 'forgot',
+  Update = 'update',
+}
+export enum AppRole {
+  User = 'User',
+  Admin = 'Admin',
+}
+export interface AuthCredentials {
+  email: string;
+  password: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class Auth {
-  private readonly config = inject(APP_CONFIG);
-  readonly client = signal<SupabaseClient | null>(null);
-  readonly session = signal<Session | null>(null);
-  readonly recovery = signal(false);
-  readonly ready = this.initialize().catch(() => this.session.set(null));
+  private readonly config: AppConfig = inject(APP_CONFIG);
+  readonly client: WritableSignal<SupabaseClient | null> = signal(null);
+  readonly session: WritableSignal<Session | null> = signal(null);
+  readonly recovery: WritableSignal<boolean> = signal(false);
+  readonly configured: Signal<boolean> = computed(() => this.client() !== null);
+  readonly signedIn: Signal<boolean> = computed(() => !!this.session()?.user.email_confirmed_at);
+  readonly isAdmin: Signal<boolean> = computed(
+    () => this.signedIn() && this.session()?.user.app_metadata['app_role'] === AppRole.Admin,
+  );
+  readonly email: Signal<string> = computed(() => this.session()?.user.email ?? '');
+  readonly ready: Promise<void> = this.initialize().catch(() => this.session.set(null));
 
-  private async initialize() {
+  async submit(mode: AuthMode, credentials: AuthCredentials): Promise<string | null> {
+    const client: SupabaseClient | null = this.client();
+    if (!client) return 'Supabase configuration is required.';
+
+    switch (mode) {
+      case AuthMode.Register: {
+        const { data, error } = await client.auth.signUp({
+          ...credentials,
+          options: {
+            emailRedirectTo: location.origin + '/',
+            data: {
+              privacy_notice_version: PRIVACY_VERSION,
+              privacy_acknowledged_at: new Date().toISOString(),
+            },
+          },
+        });
+        return (
+          error?.message ?? (data.session ? null : 'Check your email for a confirmation link.')
+        );
+      }
+      case AuthMode.Forgot: {
+        const { error } = await client.auth.resetPasswordForEmail(credentials.email, {
+          redirectTo: location.origin + '/update-password',
+        });
+        return error?.message ?? 'If an account exists, you will receive a reset link.';
+      }
+      case AuthMode.Update: {
+        if (!this.recovery()) return 'Open a valid password reset link to continue.';
+        const { error } = await client.auth.updateUser({ password: credentials.password });
+        if (error) return error.message;
+        this.recovery.set(false);
+        return null;
+      }
+      case AuthMode.Login: {
+        const { error } = await client.auth.signInWithPassword(credentials);
+        return error?.message ?? null;
+      }
+    }
+  }
+
+  private async initialize(): Promise<void> {
     if (!this.config.supabaseUrl || !this.config.supabasePublishableKey) return;
     const { createClient } = await import('@supabase/supabase-js');
-    const client = createClient(this.config.supabaseUrl, this.config.supabasePublishableKey);
+    const client: SupabaseClient = createClient(
+      this.config.supabaseUrl,
+      this.config.supabasePublishableKey,
+    );
     client.auth.onAuthStateChange((event, session) => {
       this.session.set(session);
       if (event === 'PASSWORD_RECOVERY') this.recovery.set(true);
@@ -34,15 +105,15 @@ export class Auth {
 }
 
 export const signedIn: CanActivateFn = async () => {
-  const auth = inject(Auth);
-  const router = inject(Router);
+  const auth: Auth = inject(Auth);
+  const router: Router = inject(Router);
   await auth.ready;
-  return !!auth.session()?.user.email_confirmed_at || router.createUrlTree(['/login']);
+  return auth.signedIn() || router.createUrlTree(['/login']);
 };
 
 export const adminOnly: CanActivateFn = () => {
-  const http = inject(HttpClient);
-  const router = inject(Router);
+  const http: HttpClient = inject(HttpClient);
+  const router: Router = inject(Router);
   return http.get('/api/admin/access').pipe(
     map(() => true),
     catchError(() => of(router.createUrlTree(['/']))),
@@ -50,9 +121,11 @@ export const adminOnly: CanActivateFn = () => {
 };
 
 export const apiToken: HttpInterceptorFn = (request, next) => {
-  const token = inject(Auth).session()?.access_token;
-  const url = new URL(request.url, location.origin);
-  return next(token && url.origin === location.origin && url.pathname.startsWith('/api/')
-    ? request.clone({ setHeaders: { Authorization: 'Bearer ' + token } })
-    : request);
+  const token: string | undefined = inject(Auth).session()?.access_token;
+  const url: URL = new URL(request.url, location.origin);
+  return next(
+    token && url.origin === location.origin && url.pathname.startsWith('/api/')
+      ? request.clone({ setHeaders: { Authorization: 'Bearer ' + token } })
+      : request,
+  );
 };
