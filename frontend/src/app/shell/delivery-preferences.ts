@@ -6,46 +6,7 @@ import { selectDeliveryPreferences } from './+state/delivery.selectors';
 
 @Component({
   selector: 'app-delivery-preferences',
-  template: ` <section class="mt-6 rounded-2xl border border-line bg-white p-5 sm:p-7">
-    <h2 class="text-xl font-semibold">Delivery channels</h2>
-    <p class="mt-2 text-sm text-muted">
-      Email and Slack use your verified account email. Slack delivery requires that address in the
-      configured workspace.
-    </p>
-    @if (state().error) {
-      <p class="mt-3 text-red-700" role="alert">{{ state().error }}</p>
-    }
-    @if (state().message) {
-      <p class="mt-3 text-primary" role="status">{{ state().message }}</p>
-    }
-    @if (state().busy && !options().length) {
-      <p class="mt-3" role="status">Loading channels…</p>
-    }
-    @if (options().length) {
-      <form class="mt-4 grid gap-3" (submit)="save($event)">
-        @for (option of options(); track option.channel) {
-          <label class="flex flex-wrap items-center gap-2">
-            <input
-              type="checkbox"
-              class="accent-primary"
-              [checked]="selected().includes(option.channel)"
-              [disabled]="
-                state().busy || (!option.available && !selected().includes(option.channel))
-              "
-              (change)="toggle(option.channel, $event)"
-            />
-            {{ option.channel }}
-            @if (!option.available) {
-              <span class="text-sm text-muted">Unavailable</span>
-            }
-          </label>
-        }
-        <button class="primary justify-self-start" [disabled]="state().busy || !canSave()">
-          Save delivery preferences
-        </button>
-      </form>
-    }
-  </section>`,
+  templateUrl: './delivery-preferences.html',
 })
 export class DeliveryPreferences {
   private readonly store: Store = inject(Store);

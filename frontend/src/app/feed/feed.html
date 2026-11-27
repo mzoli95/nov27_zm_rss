@@ -1,0 +1,134 @@
+<h1 class="text-3xl font-bold sm:text-4xl">{{ likedOnly ? 'Liked posts' : 'News feed' }}</h1>
+<form
+  class="my-6 grid gap-3 rounded-xl border border-line bg-white p-4 sm:grid-cols-4 sm:items-end"
+  (submit)="applyFilters($event)"
+>
+  <label>Search<input [formField]="fields.search" placeholder="Search headlines" /></label>
+  <label
+    >Topic<select [formField]="fields.topic">
+      <option value="">All topics</option>
+      @for (topic of topics; track topic) {
+        <option [value]="topic">{{ topic }}</option>
+      }
+    </select></label
+  >
+  <label
+    >Sort by<select [formField]="fields.sort">
+      <option [value]="FeedSort.Newest">Newest first</option>
+      <option [value]="FeedSort.Oldest">Oldest first</option>
+    </select></label
+  >
+  <button class="primary">Apply filters</button>
+  @if (!likedOnly) {
+    <label class="flex items-center gap-2 sm:col-span-4">
+      <input type="checkbox" class="accent-primary" [formField]="fields.preferred" /> My interests
+      only
+    </label>
+  }
+</form>
+@if (state().error) {
+  <p role="alert" class="mb-4">
+    {{ state().error }}
+    <button class="underline" (click)="load(state().nextCursor)">Retry</button>
+  </p>
+}
+@if (state().likeError) {
+  <p role="alert" class="mb-4">{{ state().likeError }}</p>
+}
+<div class="grid grid-cols-1 gap-5" aria-label="News articles" [attr.aria-busy]="state().loading">
+  @for (article of state().items; track article.id) {
+    <article class="flex flex-col overflow-hidden rounded-xl border border-line bg-white">
+      <div class="aspect-[16/7] bg-tint">
+        @if (article.imageUrl) {
+          @let picture = imageFor(article.imageUrl);
+          <img
+            [attr.sizes]="picture.srcset ? '(max-width: 800px) calc(100vw - 2rem), 768px' : null"
+            [attr.srcset]="picture.srcset"
+            [src]="picture.src"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            class="size-full"
+            [class.object-cover]="picture.srcset"
+            [class.object-scale-down]="!picture.srcset"
+            (error)="hideBrokenImage($event)"
+          />
+        }
+      </div>
+      <div class="flex flex-1 flex-col gap-2 p-5">
+        <p class="text-sm font-medium text-primary">{{ article.topic }}</p>
+        <h2 class="text-lg font-semibold">{{ article.title }}</h2>
+        <p class="text-sm text-muted">
+          {{ article.source }} · {{ article.publishedAt | date: 'mediumDate' }}
+        </p>
+        <p>{{ article.description }}</p>
+        <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3">
+          <button
+            type="button"
+            class="grid size-10 place-items-center rounded-full text-muted hover:bg-tint hover:text-primary aria-pressed:text-primary disabled:opacity-50"
+            [attr.aria-pressed]="article.liked"
+            [attr.aria-label]="'Like: ' + article.title"
+            [disabled]="state().pendingLikes.includes(article.id)"
+            (click)="toggleLike(article)"
+          >
+            <span
+              class="bi block text-lg leading-none"
+              aria-hidden="true"
+              [class.bi-heart]="!article.liked"
+              [class.bi-heart-fill]="article.liked"
+            ></span>
+          </button>
+          <a
+            class="ml-auto font-semibold text-primary hover:underline"
+            [href]="article.url"
+            [attr.aria-label]="'Continue reading: ' + article.title"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Continue reading →</a
+          >
+        </div>
+      </div>
+    </article>
+  }
+  @if (state().loading) {
+    @for (placeholder of placeholders; track placeholder) {
+      <div
+        class="overflow-hidden rounded-xl border border-line bg-white motion-safe:animate-pulse"
+        aria-hidden="true"
+        data-feed-skeleton
+      >
+        <div class="aspect-[16/7] bg-tint"></div>
+        <div class="grid gap-3 p-5">
+          <div class="h-3 w-1/5 rounded bg-tint"></div>
+          <div class="h-5 w-2/3 rounded bg-line"></div>
+          <div class="h-3 w-full rounded bg-tint"></div>
+        </div>
+      </div>
+    }
+  }
+</div>
+@if (state().loading) {
+  <p role="status" class="sr-only">Loading articles…</p>
+}
+@if (!state().loading && !state().error && !state().items.length) {
+  @if (applied().preferred && !likedOnly) {
+    <p>No articles match your interests yet.</p>
+    <button type="button" class="mt-2 text-primary underline" (click)="showAll()">
+      Show all news
+    </button>
+  } @else {
+    <p>
+      {{ likedOnly ? 'No liked posts match your filters.' : 'No articles match your filters.' }}
+    </p>
+  }
+}
+@if (state().nextCursor !== null && !state().error) {
+  <button
+    #more
+    class="primary mt-6"
+    [disabled]="state().loading"
+    (click)="load(state().nextCursor)"
+  >
+    Load more
+  </button>
+}

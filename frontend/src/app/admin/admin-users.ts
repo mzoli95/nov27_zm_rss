@@ -14,64 +14,7 @@ interface SearchFields {
 @Component({
   selector: 'app-admin-users',
   imports: [FormField, MatPaginatorModule],
-  template: ` <section class="rounded-2xl border border-line bg-white p-5 sm:p-7">
-    <h2 class="text-xl font-semibold">Users</h2>
-    <form class="mt-4 flex flex-wrap items-end gap-3" (submit)="search($event)">
-      <label class="min-w-0 flex-1"
-        >Search by email
-        <input [formField]="fields.email" placeholder="Email address" />
-      </label>
-      <button class="primary" [disabled]="state().loading || state().saving">Search</button>
-    </form>
-    @if (state().error) {
-      <p class="my-4 text-red-700" role="alert">{{ state().error }}</p>
-    }
-    @if (state().message) {
-      <p class="my-4" role="status">{{ state().message }}</p>
-    }
-    <div class="my-4 divide-y divide-line">
-      @for (user of state().users.items; track user.id) {
-        <div class="flex flex-wrap items-center justify-between gap-3 py-3">
-          <div class="min-w-0">
-            <p class="break-all font-medium">{{ user.email ?? 'No email address' }}</p>
-            <p class="text-sm text-muted">{{ user.role }}</p>
-          </div>
-          @if (user.id !== currentUserId()) {
-            <button
-              type="button"
-              [disabled]="state().saving || state().loading"
-              class="rounded-md border border-line px-3 py-1.5 text-primary"
-              (click)="changeRole(user)"
-            >
-              {{ user.role === AppRole.Admin ? 'Make user' : 'Make admin' }}
-            </button>
-          }
-        </div>
-      } @empty {
-        @if (!state().loading && !state().error) {
-          <p>No users on this page.</p>
-        }
-      }
-    </div>
-    @if (state().loading) {
-      <p role="status">Loading users…</p>
-    }
-    <nav aria-label="User pages">
-      <mat-paginator
-        [length]="userCount()"
-        [pageSize]="state().users.pageSize"
-        [pageIndex]="state().users.page - 1"
-        [hidePageSize]="true"
-        [disabled]="state().loading || state().saving"
-        (page)="load($event.pageIndex + 1)"
-      />
-      @if (state().error) {
-        <button class="text-primary underline" type="button" (click)="load(state().users.page)">
-          Retry
-        </button>
-      }
-    </nav>
-  </section>`,
+  templateUrl: './admin-users.html',
 })
 export class AdminUsers {
   private readonly store: Store = inject(Store);

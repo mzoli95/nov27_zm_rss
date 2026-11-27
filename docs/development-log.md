@@ -186,3 +186,7 @@ The user asked to configure how often the scheduled jobs run. The AI added a Sch
 ### Additional delivery channel preparation
 
 The user requested additional preparation for Teams, Discord and Telegram on the same review branch. The AI added stable channel identifiers and documented the private destination each future adapter needs. The existing admin configuration remains available for staging provider credentials.
+
+### Angular component templates
+
+The user asked to separate HTML and custom CSS from TypeScript across the Angular app. The AI moved inline templates to sibling HTML files, retained Tailwind utilities in the markup and recorded the convention in AGENTS.md.

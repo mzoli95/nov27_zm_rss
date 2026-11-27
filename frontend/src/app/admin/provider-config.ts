@@ -32,75 +32,7 @@ interface ProviderConfig {
 
 @Component({
   selector: 'app-provider-config',
-  template: `
-    <form
-      class="mt-3 grid gap-3 rounded-lg border border-line bg-page p-4 sm:grid-cols-2"
-      (submit)="save($event)"
-    >
-      <h3 class="font-semibold sm:col-span-2">Configure {{ channel() }}</h3>
-      @if (configuration.isLoading()) {
-        <p role="status">Loading provider settings…</p>
-      }
-      @if (configuration.error()) {
-        <p role="alert" class="text-red-700 sm:col-span-2">Could not load provider settings.</p>
-      }
-      @if (config(); as settings) {
-        @for (field of settings.fields; track field.key) {
-          <div>
-            <label [for]="'provider-' + field.key">{{ field.label }}</label>
-            @if (field.type === FieldType.Tls) {
-              <select
-                [id]="'provider-' + field.key"
-                [value]="values()[field.key]"
-                (change)="update(field.key, $event)"
-              >
-                <option value="StartTls">STARTTLS</option>
-                <option value="SslOnConnect">Implicit TLS</option>
-              </select>
-            } @else {
-              <input
-                [id]="'provider-' + field.key"
-                [type]="field.type"
-                [value]="values()[field.key] ?? ''"
-                [attr.autocomplete]="field.type === FieldType.Password ? 'new-password' : null"
-                [placeholder]="
-                  field.type === FieldType.Password && settings.hasSecret
-                    ? 'Saved. Leave blank to keep.'
-                    : ''
-                "
-                (input)="update(field.key, $event)"
-              />
-            }
-          </div>
-        }
-      }
-      @if (error()) {
-        <p role="alert" class="text-red-700 sm:col-span-2">{{ error() }}</p>
-      }
-      <div class="flex gap-3 sm:col-span-2">
-        <button
-          class="primary inline-flex items-center gap-2"
-          [disabled]="!config() || saving()"
-          [attr.aria-busy]="saving()"
-        >
-          @if (saving()) {
-            <span
-              class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"
-              aria-hidden="true"
-            ></span>
-          }
-          {{ saving() ? 'Saving…' : 'Save provider settings' }}
-        </button>
-        <button
-          type="button"
-          (click)="cancelled.emit()"
-          class="rounded-md border border-line px-3 py-2"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  `,
+  templateUrl: './provider-config.html',
 })
 export class ProviderConfigEditor {
   private readonly http: HttpClient = inject(HttpClient);

@@ -7,39 +7,7 @@ import { selectInbox } from './+state/notifications.selectors';
 @Component({
   imports: [DatePipe],
   host: { class: 'mx-auto block max-w-3xl' },
-  template: `
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <h1 class="text-3xl font-bold">Notifications</h1>
-      @if (inbox().unread > 0) {
-        <button type="button" class="primary" (click)="markRead()">Mark all as read</button>
-      }
-    </div>
-    <div class="mt-5 grid gap-3">
-      @for (item of inbox().items; track item.id) {
-        <article
-          class="rounded-lg border border-line p-4"
-          [class.bg-tint]="!item.read"
-          [class.bg-white]="item.read"
-        >
-          <a
-            [href]="item.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="font-medium text-primary hover:underline"
-            >{{ item.title }}</a
-          >
-          <p class="mt-1 text-sm text-muted">
-            {{ item.createdAt | date: 'medium' }}
-            @if (!item.read) {
-              · Unread
-            }
-          </p>
-        </article>
-      } @empty {
-        <p class="text-muted">No notifications yet.</p>
-      }
-    </div>
-  `,
+  templateUrl: './notifications.html',
 })
 export class Notifications {
   private readonly store: Store = inject(Store);
