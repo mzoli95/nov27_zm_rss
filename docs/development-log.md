@@ -182,3 +182,7 @@ The user clarified that BBC showed newer content than the app. The AI compared t
 ### Scheduled job intervals
 
 The user asked to configure how often the scheduled jobs run. The AI added a Scheduled jobs admin tab with separate interval choices for importing and archiving. Saved choices persist in SQLite and update Hangfire immediately.
+
+### Additional delivery channel preparation
+
+The user requested additional preparation for Teams, Discord and Telegram on the same review branch. The AI added stable channel identifiers and documented the private destination each future adapter needs. The existing admin configuration remains available for staging provider credentials.

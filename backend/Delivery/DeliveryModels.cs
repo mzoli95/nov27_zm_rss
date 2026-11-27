@@ -4,6 +4,12 @@ public static class DeliveryChannels
 {
     public const string Email = "Email";
     public const string Slack = "Slack";
+    public const string Teams = "Teams";
+    public const string Discord = "Discord";
+    public const string Telegram = "Telegram";
+
+    public static IReadOnlyList<string> Prepared { get; } =
+        Array.AsReadOnly(new[] { Teams, Discord, Telegram });
 }
 
 public enum DeliveryStatus { Pending, Sending, Accepted, Failed, Ambiguous, Skipped, Omitted }

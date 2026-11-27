@@ -56,7 +56,7 @@ public sealed class DeliveryEndpoints(FeedDb db, IEnumerable<INotificationSender
                 channel = sender.Channel, configured = sender.Configured && directory.IsConfigured,
                 canConfigure = ProviderSettings.Fields(sender.Channel).Length > 0,
                 enabled = states.GetValueOrDefault(sender.Channel, sender.EnabledByDefault), prepared = false
-            }).Concat(ProviderSettings.PreparedChannels.Select(channel => new
+            }).Concat(DeliveryChannels.Prepared.Select(channel => new
             {
                 channel, configured = false, canConfigure = true, enabled = false, prepared = true
             })),
