@@ -22,9 +22,10 @@ public sealed class EmailSender(ProviderSettings options) : INotificationSender
         MimeMessage message = new();
         message.From.Add(new MailboxAddress(settings.FromName, sender.Address));
         message.To.Add(recipient);
-        message.Subject = alert.Articles.Count == 1 ? "World Event Alerts: 1 new article" :
-            $"World Event Alerts: {alert.Articles.Count} new articles";
-        message.Body = BuildBody(alert.Articles).ToMessageBody();
+        int total = alert.TotalArticles ?? alert.Articles.Count;
+        message.Subject = total == 1 ? "World Event Alerts: 1 new article" :
+            $"World Event Alerts: {total} new articles";
+        message.Body = BuildBody(alert).ToMessageBody();
 
         using SmtpClient smtp = new() { Timeout = 10_000 };
         bool sending = false;
@@ -49,8 +50,18 @@ public sealed class EmailSender(ProviderSettings options) : INotificationSender
         }
     }
 
-    internal static BodyBuilder BuildBody(IReadOnlyList<DeliveryArticle> articles)
+    internal static BodyBuilder BuildBody(DeliveryMessage digest)
     {
+        DeliveryArticle[] articles = digest.Articles.Take(5).ToArray();
+        DeliveryLabel[] labels = digest.Labels?.Take(5).ToArray() ?? [];
+        int total = digest.TotalArticles ?? articles.Length;
+        string summary = total > articles.Length
+            ? $"Showing {articles.Length} of {total} new matches. See all in World Event Alerts."
+            : "";
+        string labelList = labels.Length == 0 ? "" :
+            "<h2 style=\"font-size:16px;margin-top:20px\">Top matching labels</h2><ul>" +
+            string.Concat(labels.Select(label =>
+                $"<li>{System.Net.WebUtility.HtmlEncode(label.Label)} · {label.Matches}</li>")) + "</ul>";
         string links = string.Concat(articles.Select(article =>
             $"""
             <li style="margin:0 0 12px">
@@ -60,13 +71,19 @@ public sealed class EmailSender(ProviderSettings options) : INotificationSender
         return new BodyBuilder
         {
             TextBody = string.Join(Environment.NewLine + Environment.NewLine,
-                articles.Select(article => article.Title + Environment.NewLine + article.Url)),
+                articles.Select(article => article.Title + Environment.NewLine + article.Url)) +
+                (summary.Length == 0 ? "" : Environment.NewLine + Environment.NewLine + summary) +
+                (labels.Length == 0 ? "" : Environment.NewLine + Environment.NewLine + "Top matching labels" +
+                    Environment.NewLine + string.Join(Environment.NewLine,
+                        labels.Select(label => $"{label.Label}: {label.Matches}"))),
             HtmlBody = $"""
                 <div style="background:#f4f8fe;padding:24px;font:16px Arial,sans-serif;color:#11243b">
                   <div style="background:#fff;border:1px solid #d7e3f2;border-radius:14px;max-width:540px;margin:auto;padding:24px">
                     <p style="color:#1759b0;font-weight:bold">World Event Alerts</p>
                     <h1 style="font-size:22px;line-height:1.4">New articles matching your alerts</h1>
+                    <p>{summary}</p>
                     <ul style="padding-left:24px">{links}</ul>
+                    {labelList}
                     <p style="font-size:13px;color:#4b6179">Manage email delivery in your World Event Alerts profile.</p>
                   </div>
                 </div>

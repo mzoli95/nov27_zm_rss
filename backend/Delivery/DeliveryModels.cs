@@ -6,13 +6,15 @@ public static class DeliveryChannels
     public const string Slack = "Slack";
 }
 
-public enum DeliveryStatus { Pending, Sending, Accepted, Failed, Ambiguous, Skipped }
+public enum DeliveryStatus { Pending, Sending, Accepted, Failed, Ambiguous, Skipped, Omitted }
 public sealed record ChannelPreference(Guid UserId, string Channel, bool Enabled);
 public sealed record ChannelState(string Channel, bool Enabled);
 public sealed record ChannelSettingsInput(bool Enabled);
 public sealed record ChannelPreferencesInput(string[] EnabledChannels);
 public sealed record DeliveryArticle(string Title, string Url);
-public sealed record DeliveryMessage(string Email, IReadOnlyList<DeliveryArticle> Articles);
+public sealed record DeliveryLabel(string Label, int Matches);
+public sealed record DeliveryMessage(string Email, IReadOnlyList<DeliveryArticle> Articles,
+    IReadOnlyList<DeliveryLabel>? Labels = null, int? TotalArticles = null);
 public sealed class DeliveryAttempt
 {
     public Guid UserId { get; init; }

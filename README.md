@@ -53,7 +53,7 @@ After bootstrapping the first administrator, add a Supabase `sb_secret_...` key 
 - **Profile → Delivery channels** starts with email selected and Slack unselected. Both use the verified Supabase account address.
 - **Administration → Delivery channels** provides SMTP and Slack bot settings, global controls and recent outcomes. Provider secrets are encrypted in SQLite and hidden from subsequent reads. See [local setup](docs/local-setup.md#email-slack-and-rss).
 - Email alerts use the application's blue HTML template with a plain-text alternative. [Brevo SMTP setup](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP)
-- New matches are collected in half-hour UTC windows. After a window closes, each selected channel receives one message with the article links listed individually. Empty windows send nothing. Groups above 40 articles are split into additional messages.
+- New matches are collected in half-hour UTC windows. Email includes up to five distinct recent articles and five matching labels, ordered by their match counts. The app retains the full set. Slack lists the articles individually in groups of up to 40. Empty windows send nothing.
 - Slack uses an installed bot to find the matching account in its workspace and send a direct message. An account absent from that workspace cannot receive the DM.
 - Deliveries use a persisted queue. `Accepted` means the provider acknowledged the request. `Ambiguous` means the app could not confirm the outcome and will avoid automatically resending that attempt.
 - To add a new channel type, implement `INotificationSender` and register it in the backend. Channel preferences, global switches and queue processing use the registered adapters.

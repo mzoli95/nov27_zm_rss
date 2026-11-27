@@ -135,3 +135,9 @@ This is a retrospective English summary of the planning conversation, followed b
 - **Assistant response:** Added responsive BBC image sizes, avoided enlarging thumbnails from sources without variants, selected suitable RSS image candidates, and grouped queued deliveries by account, channel and closed UTC half-hour window. Updated the email and Slack templates to list individual links.
 - **Decision and origin:** The user requested image optimization and digest behavior. The assistant used four verified BBC variants and a 40-link message cap to fit Slack's layout limits.
 - **Verification:** Measured real BBC candidates from 320 to 976 pixels. Edge selected 480 pixels on mobile and 976 on desktop. The SQLite harness verified separate windows, no early or duplicate delivery, independent channel outcomes and links in HTML, plain text and mocked Slack DM payloads. Angular build, lint and Prettier passed. The local Supabase secret is present. Real SMTP and Slack settings were absent and receipt remains unverified.
+
+## Email digest limit and Slack setup
+
+- **User request:** Limit emails to five unique article links, show top matching labels, keep all matches in the app, and explain where Slack app setup starts from the workspace screen.
+- **Assistant response:** Limited each email window to the five newest distinct links. Added up to five labels ranked by match count across the full window. Kept inbox entries and marked emails' remaining articles as omitted in the delivery log. Expanded the Slack setup steps.
+- **Verification:** A SQLite fixture with 55 matches and a repeated canonical URL produced one email with five distinct links, five ranked labels, and all 55 in-app entries retained. Rerunning did not resend. The first label aggregation was rejected by EF Core; a SQL-translatable projection passed the rerun. Live provider credentials were still absent.

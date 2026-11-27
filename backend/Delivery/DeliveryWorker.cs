@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WorldEventAlerts.Auth;
 using WorldEventAlerts.Feed;
+using WorldEventAlerts.News;
 
 namespace WorldEventAlerts.Delivery;
 
@@ -36,6 +37,9 @@ public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnume
 {
     private static readonly TimeSpan DigestWindow = TimeSpan.FromMinutes(30);
     private const int MaxArticlesPerMessage = 40;
+    private const int EmailLimit = 5;
+
+    private sealed record DigestCandidate(DeliveryAttempt Attempt, DeliveryArticle Article);
 
     public async Task RunAsync(CancellationToken token)
     {
@@ -49,17 +53,37 @@ public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnume
 
             DateTime from = WindowStart(oldest.UpdatedAt);
             DateTime until = from + DigestWindow;
-            DeliveryAttempt[] group = await db.DeliveryAttempts.Where(item =>
+            IQueryable<DeliveryAttempt> pending = db.DeliveryAttempts.Where(item =>
                     item.UserId == oldest.UserId && item.Channel == oldest.Channel &&
-                    item.Status == DeliveryStatus.Pending && item.UpdatedAt >= from && item.UpdatedAt < until)
-                .OrderBy(item => item.UpdatedAt).ThenBy(item => item.ArticleId)
-                .Take(MaxArticlesPerMessage).ToArrayAsync(token);
-            if (group.Length == 0) continue;
+                    item.Status == DeliveryStatus.Pending && item.UpdatedAt >= from && item.UpdatedAt < until);
+            bool email = oldest.Channel == DeliveryChannels.Email;
+            IQueryable<Article> active = db.Articles.Where(article =>
+                !article.Archived && pending.Any(attempt => attempt.ArticleId == article.Id));
+            DigestCandidate[] candidates = await pending.Join(active, attempt => attempt.ArticleId, article => article.Id,
+                    (attempt, article) => new { Attempt = attempt, Article = article })
+                .OrderByDescending(row => row.Article.PublishedAt).ThenByDescending(row => row.Article.Id)
+                .Take(MaxArticlesPerMessage)
+                .Select(row => new DigestCandidate(row.Attempt, new DeliveryArticle(row.Article.Title, row.Article.Url)))
+                .ToArrayAsync(token);
+            if (candidates.Length == 0)
+            {
+                await SetPendingStatusAsync(pending, DeliveryStatus.Skipped, token);
+                continue;
+            }
 
-            SetStatus(group, DeliveryStatus.Sending);
-            await db.SaveChangesAsync(token);
+            DigestCandidate[] selected = email
+                ? candidates.DistinctBy(item => NewsImporter.CanonicalUrl(item.Article.Url)).Take(EmailLimit).ToArray()
+                : candidates;
+            int? total = email ? await active.CountAsync(token) : null;
+            DeliveryLabel[] labels = email ? await GetTopLabelsAsync(oldest.UserId, active, token) : [];
+            DeliveryAttempt[] group = selected.Select(item => item.Attempt).ToArray();
+            await ClaimAsync(pending, group, email, token);
             DeliveryStatus status;
-            try { status = await SendAsync(group, token); }
+            try
+            {
+                DeliveryArticle[] articles = selected.Select(item => item.Article).ToArray();
+                status = await SendAsync(oldest, new DeliveryMessage("", articles, labels, total), token);
+            }
             catch (Exception error) when (!token.IsCancellationRequested)
             {
                 status = DeliveryStatus.Ambiguous;
@@ -73,9 +97,39 @@ public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnume
         }
     }
 
-    private async Task<DeliveryStatus> SendAsync(DeliveryAttempt[] group, CancellationToken token)
+    private async Task ClaimAsync(IQueryable<DeliveryAttempt> pending, DeliveryAttempt[] group,
+        bool email, CancellationToken token)
     {
-        DeliveryAttempt attempt = group[0];
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction =
+            await db.Database.BeginTransactionAsync(token);
+        if (email)
+        {
+            int[] ids = group.Select(item => item.ArticleId).ToArray();
+            await SetPendingStatusAsync(pending.Where(item => !ids.Contains(item.ArticleId)), DeliveryStatus.Omitted, token);
+        }
+        SetStatus(group, DeliveryStatus.Sending);
+        await db.SaveChangesAsync(token);
+        await transaction.CommitAsync(token);
+    }
+
+    private Task<DeliveryLabel[]> GetTopLabelsAsync(Guid userId, IQueryable<Article> articles, CancellationToken token) =>
+        db.UserLabels.Where(item => item.UserId == userId)
+            .Select(label => new
+            {
+                label.Label,
+                Matches = articles.Count(article =>
+                    article.Title.ToLower().Contains(label.Label) || article.Description.ToLower().Contains(label.Label))
+            })
+            .Where(label => label.Matches > 0)
+            .OrderByDescending(label => label.Matches).ThenBy(label => label.Label)
+            .Take(EmailLimit).Select(label => new DeliveryLabel(label.Label, label.Matches)).ToArrayAsync(token);
+
+    private static Task<int> SetPendingStatusAsync(IQueryable<DeliveryAttempt> pending, DeliveryStatus status,
+        CancellationToken token) => pending.ExecuteUpdateAsync(update => update
+            .SetProperty(item => item.Status, status).SetProperty(item => item.UpdatedAt, DateTime.UtcNow), token);
+
+    private async Task<DeliveryStatus> SendAsync(DeliveryAttempt attempt, DeliveryMessage digest, CancellationToken token)
+    {
         INotificationSender? sender = senders.FirstOrDefault(item => item.Channel == attempt.Channel);
         if (sender is null || !sender.Configured || !directory.IsConfigured) return DeliveryStatus.Skipped;
 
@@ -86,17 +140,12 @@ public sealed class DeliveryBatch(FeedDb db, SupabaseDirectory directory, IEnume
             row => row.UserId == attempt.UserId && row.Channel == attempt.Channel, token);
         if (!(preference?.Enabled ?? attempt.Channel == DeliveryChannels.Email)) return DeliveryStatus.Skipped;
 
-        int[] ids = group.Select(item => item.ArticleId).ToArray();
-        DeliveryArticle[] articles = await db.Articles.Where(item => ids.Contains(item.Id) && !item.Archived)
-            .OrderByDescending(item => item.PublishedAt).ThenByDescending(item => item.Id)
-            .Select(item => new DeliveryArticle(item.Title, item.Url)).ToArrayAsync(token);
-        if (articles.Length == 0) return DeliveryStatus.Skipped;
         DirectoryUser? recipient;
         try { recipient = await directory.FindAsync(attempt.UserId, token); }
         catch (Exception error) when (SupabaseDirectory.IsFailure(error, token)) { return DeliveryStatus.Failed; }
         if (recipient?.EmailConfirmedAt is null || string.IsNullOrWhiteSpace(recipient.Email))
             return DeliveryStatus.Skipped;
-        return await sender.SendAsync(new DeliveryMessage(recipient.Email, articles), token);
+        return await sender.SendAsync(digest with { Email = recipient.Email }, token);
     }
 
     private static DateTime WindowStart(DateTime date) =>
